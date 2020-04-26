@@ -21,7 +21,7 @@ $ pip3 install -r requirements.txt
 
 _Attention: You will need a Zoom Developer account, and a JWT app for the token_
 
-Open the **zoom-recording-downloader.py** file using your favourite text editor or IDE, and modify the following variables to reflect your account:
+Open the **zoom-recording-downloader.py** file using your favourite text editor or IDE, and modify the following variables to reflect your environment:
 
 - Set the JSON Web Token of your JWT app here
 
