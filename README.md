@@ -5,7 +5,7 @@
 **Zoom Recording Downloader** is a cross-platform Python script that uses Zoom's API (v2) to download and organize all cloud recordings from a Zoom account onto local storage.
 
 ## Screenshot ##
-![screenshot]([https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/screenshot.png](https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/screenshot.png))
+![screenshot](screenshot.png)
 
 ## Installation ##
 
