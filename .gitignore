@@ -1,3 +1,15 @@
 # Ignore Mac system files
 .DS_store
 
+# Ignore app-env
+appenv.py
+
+# Ignore Python Module Cache
+
+__pycache__/*
+
+# Ignore 'downloads' folder
+downloads/*
+
+# Ignore 'completed-downloads.log' file
+completed-downloads.log
