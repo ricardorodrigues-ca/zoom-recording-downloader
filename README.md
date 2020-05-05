@@ -5,7 +5,7 @@
 **Zoom Recording Downloader** is a cross-platform Python script that uses Zoom's API (v2) to download and organize all cloud recordings from a Zoom account onto local storage.
 
 ## Screenshot ##
-![screenshot](screenshot.png)
+![screenshot]([https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/screenshot.png](https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/screenshot.png))
 
 ## Installation ##
 
@@ -21,25 +21,21 @@ $ pip3 install -r requirements.txt
 
 _Attention: You will need a Zoom Developer account, and a JWT app for the token_
 
-Open the **zoom-recording-downloader.py** file using your favourite text editor or IDE, and modify the following variables to reflect your environment:
+Create a file called **appenv.py** with a variable called "JWT_TOKEN" that contains the JSON Web Token for your JWT app:
 
-- Set the JSON Web Token of your JWT app here
+    JWT_TOKEN = 'your_token_goes_here'
 
-      JWT_TOKEN = 'your_token_goes_here'
+Open the **zoom-recording-downloader.py** file using your editor of choice, and modify the following variables to reflect your environment:
 
 - Set this variable to the earliest recording date you wish to download (default = 2020-01-01)
 
       RECORDING_START_DATE = '2020-01-01'
 
-- Set this variable to the total number of users in your Zoom account (default = 1000)
-
-      TOTAL_USERS = 1000
-
 - Specify the folder name where recordings will be downloaded to (default = downloads)
 
       DOWNLOAD_DIRECTORY = 'downloads'
 
-- Specify the file name of the log file that will store the ID's of the downloaded recordings (default = completed_downloads.log)
+- Specify the name of the log file that will store the ID's of downloaded recordings (default = completed_downloads.log)
 
       COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 
