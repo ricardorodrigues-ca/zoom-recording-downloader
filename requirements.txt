@@ -1,4 +1,6 @@
 dateutils
+progress
+progressbar
+python-dateutil
 requests
-iter
 tqdm
