@@ -61,21 +61,12 @@ def get_user_ids():
 
     # loop through all pages and return user data
     for page in range(1, total_pages):
-<<<<<<< HEAD
-=======
-
->>>>>>> 876fb1524e2d4ecdeef6d022dd3ddeaaa2b72f98
         url = API_ENDPOINT_USER_LIST + "?page_number=" + str(page)
         user_data = requests.get(url=url, headers=AUTHORIZATION_HEADER).json()
         user_ids = [(user['email'], user['id'], user['first_name'], user['last_name']) for user in user_data['users']]
         all_entries.extend(user_ids)
         data = all_entries
         page += 1
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> 876fb1524e2d4ecdeef6d022dd3ddeaaa2b72f98
     return data
 
 
