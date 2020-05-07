@@ -106,7 +106,7 @@ def list_recordings(email):
     for i in range(1, page_count):  # start at page index 1 since we already have the first page
         current_page = i + 1
         print('Getting page {} of {}'.format(current_page, page_count))
-        post_data = get_credentials(email, current_page)
+        post_data = get_credentials(email, current_page, [])
         response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, data=post_data)
         recordings_data = response.json()
         if recordings_data:
