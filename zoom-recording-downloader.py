@@ -89,7 +89,7 @@ def get_downloads(recording):
 
 
 def list_recordings(email):
-    post_data = get_credentials(email, 1, set())
+    post_data = get_credentials(email, 1, RECORDING_START_DATE)
     response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
     recordings_data = response.json()
     total_records = recordings_data['total_records']
