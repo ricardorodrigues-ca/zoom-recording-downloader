@@ -94,6 +94,7 @@ def list_recordings(email):
     recordings_data = response.json()
     total_records = recordings_data['total_records']
     page_count = recordings_data['page_count']
+    next_page = recordings_data['next_page_token']
 
     if total_records == 0:
         return []
@@ -103,16 +104,25 @@ def list_recordings(email):
 
     recordings = recordings_data['meetings']
 
-    for i in range(1, page_count):  # start at page index 1 since we already have the first page
-        current_page = i + 1
-        print('Getting page {} of {}'.format(current_page, page_count))
-        post_data = get_credentials(email, current_page, [])
-        response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, data=post_data)
+    while next_page:
+        post_data = { 'userId': email, 'page_size': 300, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
+        response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
         recordings_data = response.json()
-        if recordings_data:
-            recordings.extend(recordings_data['meetings'])
+        recordings.extend(recordings_data['meetings'])
+        return recordings
 
-    return recordings
+    #for i in range(1, page_count):  # start at page index 1 since we already have the first page
+    #    current_page = i + 1
+    #    print('Getting page {} of {}'.format(current_page, page_count))
+    #    post_data = { 'userId': email, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
+    #    response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
+    #    recordings_data = response.json()
+        #print(recordings_data)
+        #if len(next_page) == 0:
+        #    return recordings
+        #elif recordings_data:
+        #    recordings.extend(recordings_data['meetings'])
+        #    return recordings
 
 
 def download_recording(download_url, email, filename):
@@ -128,7 +138,8 @@ def download_recording(download_url, email, filename):
     # create TQDM progress bar
     t = tqdm(total=total_size, unit='iB', unit_scale=True)
     try:
-        with open(full_filename, 'wb') as fd:
+        #with open(full_filename, 'wb') as fd:
+        with open(os.devnull, 'wb') as fd: # write to dev/null for testing
             for chunk in response.iter_content(block_size):
                 t.update(len(chunk))
                 fd.write(chunk) # write video chunk to disk
