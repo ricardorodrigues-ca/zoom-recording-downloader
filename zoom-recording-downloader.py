@@ -105,7 +105,12 @@ def list_recordings(email):
     recordings = recordings_data['meetings']
 
     while next_page:
-        post_data = { 'userId': email, 'page_size': 300, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
+        post_data = {
+            'userId': email,
+            'page_size': 300,
+            'from': RECORDING_START_DATE,
+            'next_page_token': next_page
+            }
         response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
         recordings_data = response.json()
         recordings.extend(recordings_data['meetings'])
