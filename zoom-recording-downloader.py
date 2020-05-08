@@ -143,8 +143,8 @@ def download_recording(download_url, email, filename):
     # create TQDM progress bar
     t = tqdm(total=total_size, unit='iB', unit_scale=True)
     try:
-        #with open(full_filename, 'wb') as fd:
-        with open(os.devnull, 'wb') as fd: # write to dev/null for testing
+        with open(full_filename, 'wb') as fd:
+        #with open(os.devnull, 'wb') as fd: # write to dev/null for testing
             for chunk in response.iter_content(block_size):
                 t.update(len(chunk))
                 fd.write(chunk) # write video chunk to disk
