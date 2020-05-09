@@ -104,31 +104,15 @@ def list_recordings(email):
 
     recordings = recordings_data['meetings']
 
-    while next_page:
-        post_data = {
-            'userId': email,
-            'page_size': 300,
-            'from': RECORDING_START_DATE,
-            'next_page_token': next_page
-            }
+    # paginate through list of all recordings
+    for i in range(1, page_count):  # start at page index 1 since we already have the first page
+        post_data = { 'userId': email, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
         response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
         recordings_data = response.json()
+        next_page = recordings_data['next_page_token'] # update with new next_page_token
         recordings.extend(recordings_data['meetings'])
-        return recordings
 
-    #for i in range(1, page_count):  # start at page index 1 since we already have the first page
-    #    current_page = i + 1
-    #    print('Getting page {} of {}'.format(current_page, page_count))
-    #    post_data = { 'userId': email, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
-    #    response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
-    #    recordings_data = response.json()
-        #print(recordings_data)
-        #if len(next_page) == 0:
-        #    return recordings
-        #elif recordings_data:
-        #    recordings.extend(recordings_data['meetings'])
-        #    return recordings
-
+    return recordings
 
 def download_recording(download_url, email, filename):
     dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
@@ -144,7 +128,7 @@ def download_recording(download_url, email, filename):
     t = tqdm(total=total_size, unit='iB', unit_scale=True)
     try:
         with open(full_filename, 'wb') as fd:
-        #with open(os.devnull, 'wb') as fd: # write to dev/null for testing
+        #with open(os.devnull, 'wb') as fd: # write to dev/null when testing
             for chunk in response.iter_content(block_size):
                 t.update(len(chunk))
                 fd.write(chunk) # write video chunk to disk
