@@ -21,7 +21,7 @@ $ pip3 install -r requirements.txt
 
 _Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [JWT app](https://marketplace.zoom.us/docs/guides/build/jwt-app) with your token_
 
-Create a file called **appenv.py** with a variable called "JWT_TOKEN" that contains the JSON Web Token from your JWT app:
+Create a file called **appenv.py** with a variable called `JWT_TOKEN` that contains the JSON Web Token from your JWT app:
 
     JWT_TOKEN = 'your_token_goes_here'
 
