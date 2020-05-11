@@ -9,7 +9,7 @@
 
 ## Installation ##
 
-_Attention: You will need Python version 3.6 or greater_
+_Attention: You will need [Python 3.6](https://www.python.org/downloads/) or greater_
 
 ```sh
 $ git clone https://github.com/ricardorodrigues-ca/zoom-recording-downloader
@@ -19,7 +19,7 @@ $ pip3 install -r requirements.txt
 
 ## Usage ##
 
-_Attention: You will require a Zoom Developer account in order to create a JWT app with your token_
+_Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [JWT app](https://marketplace.zoom.us/docs/guides/build/jwt-app) with your token_
 
 Create a file called **appenv.py** with a variable called "JWT_TOKEN" that contains the JSON Web Token from your JWT app:
 
