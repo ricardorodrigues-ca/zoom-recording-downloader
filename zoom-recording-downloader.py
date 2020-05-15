@@ -203,7 +203,7 @@ def main():
 
     load_completed_meeting_ids()
 
-    print(color.BOLD + "Getting User accounts..." + color.END)
+    print(color.BOLD + "Getting user accounts..." + color.END)
     users = get_user_ids()
 
     for email, user_id, first_name, last_name in users:
@@ -240,7 +240,7 @@ def main():
 
     print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
-    print(color.BLUE + "\nRecordings have been saved to: " + color.UNDERLINE + "{}".format(save_location) + color.END)
+    print(color.BLUE + "\nRecordings have been saved to: " + color.UNDERLINE + "{}".format(save_location) + color.END + "\n")
 
 if __name__ == "__main__":
     # tell Python to run the handler() function when SIGINT is recieved
