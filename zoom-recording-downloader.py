@@ -31,10 +31,23 @@ AUTHORIZATION_HEADER = { 'Authorization': ACCESS_TOKEN }
 
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
-RECORDING_START_DATE = '2020-01-01' # Start date in 'yyyy-mm-dd' format (Within 6 month range)
+RECORDING_START_DATE = '2020-01-01' # Start date in 'yyyy-mm-dd' format (within 6 month range)
 DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
+
+# define class for text colouring and highlighting
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
 
 
 def API_ENDPOINT_RECORDING_LIST(email):
@@ -111,8 +124,8 @@ def list_recordings(email):
         recordings_data = response.json()
         next_page = recordings_data['next_page_token'] # update with new next_page_token
         recordings.extend(recordings_data['meetings'])
-
     return recordings
+
 
 def download_recording(download_url, email, filename):
     dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
@@ -190,22 +203,22 @@ def main():
 
     load_completed_meeting_ids()
 
-    print("Getting User accounts...")
+    print(color.BOLD + "Getting User accounts..." + color.END)
     users = get_user_ids()
 
     for email, user_id, first_name, last_name in users:
-        print('\nGetting recording list for {} {} ({})'.format(first_name, last_name, email ))
+        print(color.BOLD + "\nGetting recording list for {} {} ({})".format(first_name, last_name, email) + color.END)
         # wait n.n seconds so we don't breach the API rate limit
         #time.sleep(0.1)
         recordings = list_recordings(user_id)
         total_count = len(recordings)
-        print('==> Found {} recordings'.format(total_count))
+        print("==> Found {} recordings".format(total_count))
 
         for index, recording in enumerate(recordings):
             success = False
             meeting_id = recording['uuid']
             if meeting_id in COMPLETED_MEETING_IDS:
-                print('==> Skipping already downloaded meeting: {}'.format(meeting_id))
+                print("==> Skipping already downloaded meeting: {}".format(meeting_id))
                 continue
 
             downloads = get_downloads(recording)
@@ -213,7 +226,7 @@ def main():
             for file_type, download_url in downloads:
                 filename = format_filename(recording, file_type)
                 truncated_url = download_url[0:64] + "..." # truncate URL to 64 characters
-                print('==> Downloading ({} of {}): {}: {}'.format(index+1, total_count, meeting_id, truncated_url))
+                print("==> Downloading ({} of {}): {}: {}".format(index+1, total_count, meeting_id, truncated_url))
                 success |= download_recording(download_url, email, filename)
                 #success = True
 
@@ -225,9 +238,9 @@ def main():
                     log.write('\n')
                     log.flush()
 
-    print("\n*** All done! ***")
+    print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
-    print("\nRecordings have been saved to: {}".format(save_location))
+    print(color.BLUE + "\nRecordings have been saved to: " + color.UNDERLINE + "{}".format(save_location) + color.END)
 
 if __name__ == "__main__":
     # tell Python to run the handler() function when SIGINT is recieved
