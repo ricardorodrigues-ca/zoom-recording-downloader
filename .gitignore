@@ -11,7 +11,10 @@ token.py
 __pycache__/*
 
 # Ignore 'downloads' folder
-downloads/*
+*downloads*
 
 # Ignore 'completed-downloads.log' file
 completed-downloads.log
+
+# Ignore Visual Studio Code Workspace
+*.vscode-workspace

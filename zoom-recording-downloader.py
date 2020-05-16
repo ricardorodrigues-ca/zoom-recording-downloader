@@ -6,11 +6,11 @@
 #               cloud recordings from a Zoom account onto local storage.
 #               This Python script uses the JSON Web Token (JWT)
 #               method of accessing the Zoom API
-# Version:      2.0
 # Created:      2020-04-26
 # Author:       Ricardo Rodrigues
 # Website:      https://github.com/ricardorodrigues-ca/zoom-recording-downloader
-# Forked from https://gist.github.com/danaspiegel/c33004e52ffacb60c24215abf8301680
+# Forked from:  https://gist.github.com/danaspiegel/c33004e52ffacb60c24215abf8301680
+APP_VERSION =   2.0
 
 import os
 import sys
@@ -165,7 +165,7 @@ def load_completed_meeting_ids():
 
 def handler(signal_received, frame):
     # handle cleanup here
-    print('\nSIGINT or CTRL-C detected. Exiting gracefully.')
+    print(color.RED + "\nSIGINT or CTRL-C detected. Exiting gracefully." + color.END)
     exit(0)
 
 
@@ -198,8 +198,8 @@ def main():
 
                            Zoom Recording Downloader
 
-                                  Version 2.0
-''')
+                                  Version {}
+'''.format(APP_VERSION))
 
     load_completed_meeting_ids()
 
