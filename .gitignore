@@ -17,4 +17,4 @@ __pycache__/*
 completed-downloads.log
 
 # Ignore Visual Studio Code Workspace
-*.vscode-workspace
+*.code-workspace
