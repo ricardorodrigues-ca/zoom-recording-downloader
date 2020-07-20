@@ -10,31 +10,40 @@
 # Author:       Ricardo Rodrigues
 # Website:      https://github.com/ricardorodrigues-ca/zoom-recording-downloader
 # Forked from:  https://gist.github.com/danaspiegel/c33004e52ffacb60c24215abf8301680
-APP_VERSION =   2.0
 
-import os
-import sys
-import time
-import requests
-import itertools
-from dateutil.parser import parse
-from signal import signal, SIGINT
-from sys import exit
-# Import app environment variables
-from appenv import JWT_TOKEN
 # Import TQDM progress bar library
 from tqdm import tqdm
+# Import app environment variables
+from appenv import JWT_TOKEN
+from sys import exit
+from signal import signal, SIGINT
+from dateutil.parser import parse
+import datetime
+from datetime import date
+from dateutil import relativedelta
+from datetime import date, timedelta
+import itertools
+import requests
+import time
+import sys
+import os
+APP_VERSION = 2.0
 
 # JWT_TOKEN now lives in appenv.py
 ACCESS_TOKEN = 'Bearer ' + JWT_TOKEN
-AUTHORIZATION_HEADER = { 'Authorization': ACCESS_TOKEN }
+AUTHORIZATION_HEADER = {'Authorization': ACCESS_TOKEN}
 
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
-RECORDING_START_DATE = '2020-01-01' # Start date in 'yyyy-mm-dd' format (within 6 month range)
+# Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
+RECORDING_START_YEAR = 2020
+RECORDING_START_MONTH = 1
+RECORDING_START_DAY = 1
+RECORDING_END_DATE = date.today()
 DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
+
 
 # define class for text colouring and highlighting
 class color:
@@ -65,7 +74,8 @@ def get_credentials(host_id, page_number, rec_start_date):
 
 def get_user_ids():
     # get total page count, convert to integer, increment by 1
-    response = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER)
+    response = requests.get(url=API_ENDPOINT_USER_LIST,
+                            headers=AUTHORIZATION_HEADER)
     page_data = response.json()
     total_pages = int(page_data['page_count']) + 1
 
@@ -76,7 +86,8 @@ def get_user_ids():
     for page in range(1, total_pages):
         url = API_ENDPOINT_USER_LIST + "?page_number=" + str(page)
         user_data = requests.get(url=url, headers=AUTHORIZATION_HEADER).json()
-        user_ids = [(user['email'], user['id'], user['first_name'], user['last_name']) for user in user_data['users']]
+        user_ids = [(user['email'], user['id'], user['first_name'],
+                     user['last_name']) for user in user_data['users']]
         all_entries.extend(user_ids)
         data = all_entries
         page += 1
@@ -96,33 +107,37 @@ def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
-        download_url = download['download_url'] + "?access_token=" + JWT_TOKEN # must append JWT token to download_url
+        # must append JWT token to download_url
+        download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
         downloads.append((file_type, download_url, ))
     return downloads
 
 
+def get_recordings(email, page_size, rec_start_date, rec_end_date):
+    return {
+        'userId':       email,
+        'page_size':    page_size,
+        'from':         rec_start_date,
+        'to':           rec_end_date
+    }
+
+
+# Generator used to create deltas for recording start and end dates
+def perdelta(start, end, delta):
+    curr = start
+    while curr < end:
+        yield curr, min(curr + delta, end)
+        curr += delta
+
+
 def list_recordings(email):
-    post_data = get_credentials(email, 1, RECORDING_START_DATE)
-    response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
-    recordings_data = response.json()
-    total_records = recordings_data['total_records']
-    page_count = recordings_data['page_count']
-    next_page = recordings_data['next_page_token']
+    recordings = []
 
-    if total_records == 0:
-        return []
-
-    if page_count <= 1:
-        return recordings_data['meetings']
-
-    recordings = recordings_data['meetings']
-
-    # paginate through list of all recordings
-    for i in range(1, page_count):  # start at page index 1 since we already have the first page
-        post_data = { 'userId': email, 'from': RECORDING_START_DATE, 'next_page_token': next_page }
-        response = requests.get(url=API_ENDPOINT_RECORDING_LIST(email), headers=AUTHORIZATION_HEADER, params=post_data)
+    for start, end in perdelta(date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY), date.today(), timedelta(days=30)):
+        post_data = get_recordings(email, 300, start, end)
+        response = requests.get(url=API_ENDPOINT_RECORDING_LIST(
+            email), headers=AUTHORIZATION_HEADER, params=post_data)
         recordings_data = response.json()
-        next_page = recordings_data['next_page_token'] # update with new next_page_token
         recordings.extend(recordings_data['meetings'])
     return recordings
 
@@ -135,18 +150,18 @@ def download_recording(download_url, email, filename):
 
     # total size in bytes.
     total_size = int(response.headers.get('content-length', 0))
-    block_size = 32 * 1024 # 32 Kibibytes
+    block_size = 32 * 1024  # 32 Kibibytes
 
     # create TQDM progress bar
     t = tqdm(total=total_size, unit='iB', unit_scale=True)
     try:
         with open(full_filename, 'wb') as fd:
-        #with open(os.devnull, 'wb') as fd: # write to dev/null when testing
+            # with open(os.devnull, 'wb') as fd:  # write to dev/null when testing
             for chunk in response.iter_content(block_size):
                 t.update(len(chunk))
-                fd.write(chunk) # write video chunk to disk
-            t.close()
-            return True
+                fd.write(chunk)  # write video chunk to disk
+        t.close()
+        return True
     except Exception as e:
         # if there was some exception, print the error and return False
         print(e)
@@ -157,10 +172,11 @@ def load_completed_meeting_ids():
     try:
         with open(COMPLETED_MEETING_IDS_LOG, 'r') as fd:
             for line in fd:
-                 COMPLETED_MEETING_IDS.add(line.strip())
+                COMPLETED_MEETING_IDS.add(line.strip())
     except FileNotFoundError:
-        print("Log file not found. Creating new log file: ", COMPLETED_MEETING_IDS_LOG)
-        print('')
+        print("Log file not found. Creating new log file: ",
+              COMPLETED_MEETING_IDS_LOG)
+        print()
 
 
 def handler(signal_received, frame):
@@ -207,9 +223,10 @@ def main():
     users = get_user_ids()
 
     for email, user_id, first_name, last_name in users:
-        print(color.BOLD + "\nGetting recording list for {} {} ({})".format(first_name, last_name, email) + color.END)
+        print(color.BOLD + "\nGetting recording list for {} {} ({})".format(first_name,
+                                                                            last_name, email) + color.END)
         # wait n.n seconds so we don't breach the API rate limit
-        #time.sleep(0.1)
+        # time.sleep(0.1)
         recordings = list_recordings(user_id)
         total_count = len(recordings)
         print("==> Found {} recordings".format(total_count))
@@ -225,8 +242,10 @@ def main():
 
             for file_type, download_url in downloads:
                 filename = format_filename(recording, file_type)
-                truncated_url = download_url[0:64] + "..." # truncate URL to 64 characters
-                print("==> Downloading ({} of {}): {}: {}".format(index+1, total_count, meeting_id, truncated_url))
+                # truncate URL to 64 characters
+                truncated_url = download_url[0:64] + "..."
+                print("==> Downloading ({} of {}): {}: {}".format(
+                    index+1, total_count, meeting_id, truncated_url))
                 success |= download_recording(download_url, email, filename)
                 #success = True
 
@@ -240,7 +259,9 @@ def main():
 
     print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
-    print(color.BLUE + "\nRecordings have been saved to: " + color.UNDERLINE + "{}".format(save_location) + color.END + "\n")
+    print(color.BLUE + "\nRecordings have been saved to: " +
+          color.UNDERLINE + "{}".format(save_location) + color.END + "\n")
+
 
 if __name__ == "__main__":
     # tell Python to run the handler() function when SIGINT is recieved
