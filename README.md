@@ -27,7 +27,7 @@ Create a file called **appenv.py** with a variable called `JWT_TOKEN` that conta
 
 Open the **zoom-recording-downloader.py** file using your editor of choice, and modify the following variables to reflect your environment:
 
-- Set these variables to the earliest recording date you wish to download (default is January 1st, 2020)
+- Set these variables to the earliest recording date you wish to download, within a six month period (default is January 1st, 2020)
 
       RECORDING_START_YEAR = 2020
       
