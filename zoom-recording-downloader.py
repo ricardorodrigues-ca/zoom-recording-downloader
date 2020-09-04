@@ -40,8 +40,7 @@ RECORDING_START_YEAR = 2020
 RECORDING_START_MONTH = 8
 RECORDING_START_DAY = 28
 RECORDING_END_DATE = date.today()
-# /Volumes/GoogleDrive/Drive\'ım/Zoom Backups
-DOWNLOAD_DIRECTORY = '/Volumes/GoogleDrive/Drive\'ım/Zoom Backups'
+DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
 
