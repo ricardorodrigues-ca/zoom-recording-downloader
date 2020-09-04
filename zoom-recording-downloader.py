@@ -27,7 +27,7 @@ import requests
 import time
 import sys
 import os
-APP_VERSION = 2.0
+APP_VERSION = "2.1"
 
 # JWT_TOKEN now lives in appenv.py
 ACCESS_TOKEN = 'Bearer ' + JWT_TOKEN
@@ -37,10 +37,11 @@ API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
 RECORDING_START_YEAR = 2020
-RECORDING_START_MONTH = 1
-RECORDING_START_DAY = 1
+RECORDING_START_MONTH = 8
+RECORDING_START_DAY = 28
 RECORDING_END_DATE = date.today()
-DOWNLOAD_DIRECTORY = 'downloads'
+# /Volumes/GoogleDrive/Drive\'ım/Zoom Backups
+DOWNLOAD_DIRECTORY = '/Volumes/GoogleDrive/Drive\'ım/Zoom Backups'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
 
@@ -94,22 +95,26 @@ def get_user_ids():
     return data
 
 
-def format_filename(recording, file_type):
+def format_filename(recording, file_type, recording_type):
     uuid = recording['uuid']
     topic = recording['topic'].replace('/', '&')
+    rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time'])
-
     return '{} - {} UTC - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic, file_type.lower())
+        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, file_type.lower())
 
 
 def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
+        if file_type != "TIMELINE":
+            recording_type = download['recording_type']
+        else:
+            recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, download_url, ))
+        downloads.append((file_type, download_url, recording_type ))
     return downloads
 
 
@@ -239,13 +244,12 @@ def main():
                 continue
 
             downloads = get_downloads(recording)
-
-            for file_type, download_url in downloads:
-                filename = format_filename(recording, file_type)
+            for file_type, download_url,recording_type in downloads:
+                filename = format_filename(recording, file_type, recording_type)
                 # truncate URL to 64 characters
                 truncated_url = download_url[0:64] + "..."
-                print("==> Downloading ({} of {}): {}: {}".format(
-                    index+1, total_count, meeting_id, truncated_url))
+                print("==> Downloading ({} of {}) as {}: {}: {}".format(
+                    index+1, total_count, recording_type,meeting_id, truncated_url))
                 success |= download_recording(download_url, email, filename)
                 #success = True
 
