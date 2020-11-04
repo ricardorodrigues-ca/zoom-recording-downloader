@@ -113,7 +113,7 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, download_url, recording_type ))
+        downloads.append((file_type, download_url, recording_type))
     return downloads
 
 
@@ -243,12 +243,13 @@ def main():
                 continue
 
             downloads = get_downloads(recording)
-            for file_type, download_url,recording_type in downloads:
-                filename = format_filename(recording, file_type, recording_type)
+            for file_type, download_url, recording_type in downloads:
+                filename = format_filename(
+                    recording, file_type, recording_type)
                 # truncate URL to 64 characters
                 truncated_url = download_url[0:64] + "..."
                 print("==> Downloading ({} of {}) as {}: {}: {}".format(
-                    index+1, total_count, recording_type,meeting_id, truncated_url))
+                    index+1, total_count, recording_type, meeting_id, truncated_url))
                 success |= download_recording(download_url, email, filename)
                 #success = True
 
