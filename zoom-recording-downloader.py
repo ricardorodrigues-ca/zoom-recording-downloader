@@ -107,7 +107,10 @@ def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
-        if file_type != "TIMELINE":
+        if file_type == "":
+            recording_type = 'incomplete'
+            #print("\download is: {}".format(download))
+        elif file_type != "TIMELINE":
             recording_type = download['recording_type']
         else:
             recording_type = download['file_type']
@@ -244,14 +247,18 @@ def main():
 
             downloads = get_downloads(recording)
             for file_type, download_url, recording_type in downloads:
-                filename = format_filename(
-                    recording, file_type, recording_type)
-                # truncate URL to 64 characters
-                truncated_url = download_url[0:64] + "..."
-                print("==> Downloading ({} of {}) as {}: {}: {}".format(
-                    index+1, total_count, recording_type, meeting_id, truncated_url))
-                success |= download_recording(download_url, email, filename)
-                #success = True
+                if recording_type != 'incomplete':
+                    filename = format_filename(
+                        recording, file_type, recording_type)
+                    # truncate URL to 64 characters
+                    truncated_url = download_url[0:64] + "..."
+                    print("==> Downloading ({} of {}) as {}: {}: {}".format(
+                        index+1, total_count, recording_type, meeting_id, truncated_url))
+                    success |= download_recording(download_url, email, filename)
+                    #success = True
+                else:
+                    print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, meeting_id))
+                    success = False         
 
             if success:
                 # if successful, write the ID of this recording to the completed file
