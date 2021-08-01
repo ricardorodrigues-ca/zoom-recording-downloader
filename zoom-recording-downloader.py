@@ -94,19 +94,20 @@ def get_user_ids():
     return data
 
 
-def format_filename(recording, file_type, recording_type):
+def format_filename(recording, file_type, recording_type, recording_id):
     uuid = recording['uuid']
     topic = recording['topic'].replace('/', '&')
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time'])
-    return '{} - {} UTC - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, file_type.lower())
+    return '{} - {} UTC - {} - {}.{}'.format(
+        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_type.lower())
 
 
 def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
+        recording_id = download['id']
         if file_type == "":
             recording_type = 'incomplete'
             #print("\download is: {}".format(download))
@@ -116,7 +117,7 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, download_url, recording_type))
+        downloads.append((file_type, download_url, recording_type, recording_id))
     return downloads
 
 
@@ -246,18 +247,18 @@ def main():
                 continue
 
             downloads = get_downloads(recording)
-            for file_type, download_url, recording_type in downloads:
+            for file_type, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
                     filename = format_filename(
-                        recording, file_type, recording_type)
+                        recording, file_type, recording_type, recording_id)
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
-                        index+1, total_count, recording_type, meeting_id, truncated_url))
+                        index+1, total_count, recording_type, recording_id, truncated_url))
                     success |= download_recording(download_url, email, filename)
                     #success = True
                 else:
-                    print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, meeting_id))
+                    print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, recording_id))
                     success = False         
 
             if success:
