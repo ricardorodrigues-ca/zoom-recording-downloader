@@ -36,10 +36,11 @@ AUTHORIZATION_HEADER = {'Authorization': ACCESS_TOKEN}
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
-RECORDING_START_YEAR = 2020
-RECORDING_START_MONTH = 8
-RECORDING_START_DAY = 28
-RECORDING_END_DATE = date.today()
+RECORDING_START_YEAR = 2021
+RECORDING_START_MONTH = 6
+RECORDING_START_DAY = 23
+# RECORDING_END_DATE = date.today()
+RECORDING_END_DATE = date(2021, 6, 24)
 DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
@@ -141,7 +142,7 @@ def perdelta(start, end, delta):
 def list_recordings(email):
     recordings = []
 
-    for start, end in perdelta(date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY), date.today(), timedelta(days=30)):
+    for start, end in perdelta(date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY), RECORDING_END_DATE, timedelta(days=30)):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(url=API_ENDPOINT_RECORDING_LIST(
             email), headers=AUTHORIZATION_HEADER, params=post_data)
