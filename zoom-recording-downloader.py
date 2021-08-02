@@ -37,10 +37,10 @@ API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
 RECORDING_START_YEAR = 2021
-RECORDING_START_MONTH = 6
-RECORDING_START_DAY = 23
-# RECORDING_END_DATE = date.today()
-RECORDING_END_DATE = date(2021, 6, 24)
+RECORDING_START_MONTH = 1
+RECORDING_START_DAY = 1
+RECORDING_END_DATE = date.today()
+# RECORDING_END_DATE = date(2021, 8, 1)
 DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
@@ -95,19 +95,20 @@ def get_user_ids():
     return data
 
 
-def format_filename(recording, file_type, recording_type, recording_id):
+def format_filename(recording, file_type, file_extension, recording_type, recording_id):
     uuid = recording['uuid']
     topic = recording['topic'].replace('/', '&')
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time'])
     return '{} - {} UTC - {} - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_type.lower())
+        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_extension.lower())
 
 
 def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
+        file_extension = download['file_extension']
         recording_id = download['id']
         if file_type == "":
             recording_type = 'incomplete'
@@ -118,7 +119,7 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, download_url, recording_type, recording_id))
+        downloads.append((file_type, file_extension, download_url, recording_type, recording_id))
     return downloads
 
 
@@ -248,10 +249,10 @@ def main():
                 continue
 
             downloads = get_downloads(recording)
-            for file_type, download_url, recording_type, recording_id in downloads:
+            for file_type, file_extension, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
                     filename = format_filename(
-                        recording, file_type, recording_type, recording_id)
+                        recording, file_type, file_extension, recording_type, recording_id)
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
