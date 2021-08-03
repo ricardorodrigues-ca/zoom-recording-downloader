@@ -36,10 +36,11 @@ AUTHORIZATION_HEADER = {'Authorization': ACCESS_TOKEN}
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
-RECORDING_START_YEAR = 2020
-RECORDING_START_MONTH = 8
-RECORDING_START_DAY = 28
+RECORDING_START_YEAR = 2021
+RECORDING_START_MONTH = 1
+RECORDING_START_DAY = 1
 RECORDING_END_DATE = date.today()
+# RECORDING_END_DATE = date(2021, 8, 1)
 DOWNLOAD_DIRECTORY = 'downloads'
 COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
@@ -94,19 +95,21 @@ def get_user_ids():
     return data
 
 
-def format_filename(recording, file_type, recording_type):
+def format_filename(recording, file_type, file_extension, recording_type, recording_id):
     uuid = recording['uuid']
     topic = recording['topic'].replace('/', '&')
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time'])
-    return '{} - {} UTC - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, file_type.lower())
+    return '{} - {} UTC - {} - {}.{}'.format(
+        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_extension.lower())
 
 
 def get_downloads(recording):
     downloads = []
     for download in recording['recording_files']:
         file_type = download['file_type']
+        file_extension = download['file_extension']
+        recording_id = download['id']
         if file_type == "":
             recording_type = 'incomplete'
             #print("\download is: {}".format(download))
@@ -116,7 +119,7 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, download_url, recording_type))
+        downloads.append((file_type, file_extension, download_url, recording_type, recording_id))
     return downloads
 
 
@@ -140,7 +143,7 @@ def perdelta(start, end, delta):
 def list_recordings(email):
     recordings = []
 
-    for start, end in perdelta(date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY), date.today(), timedelta(days=30)):
+    for start, end in perdelta(date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY), RECORDING_END_DATE, timedelta(days=30)):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(url=API_ENDPOINT_RECORDING_LIST(
             email), headers=AUTHORIZATION_HEADER, params=post_data)
@@ -246,18 +249,18 @@ def main():
                 continue
 
             downloads = get_downloads(recording)
-            for file_type, download_url, recording_type in downloads:
+            for file_type, file_extension, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
                     filename = format_filename(
-                        recording, file_type, recording_type)
+                        recording, file_type, file_extension, recording_type, recording_id)
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
-                        index+1, total_count, recording_type, meeting_id, truncated_url))
+                        index+1, total_count, recording_type, recording_id, truncated_url))
                     success |= download_recording(download_url, email, filename)
                     #success = True
                 else:
-                    print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, meeting_id))
+                    print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, recording_id))
                     success = False         
 
             if success:
