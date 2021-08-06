@@ -99,9 +99,9 @@ def format_filename(recording, file_type, file_extension, recording_type, record
     uuid = recording['uuid']
     topic = recording['topic'].replace('/', '&')
     rec_type = recording_type.replace("_", " ").title()
-    meeting_time = parse(recording['start_time'])
-    return '{} - {} UTC - {} - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_extension.lower())
+    meeting_time = parse(recording['start_time']).strftime('%Y.%m.%d - %I.%M %p UTC')
+    return '{} - {} - {}.{}'.format(
+        meeting_time, topic+" - "+rec_type, recording_id, file_extension.lower()),'{} - {}'.format(topic, meeting_time)
 
 
 def get_downloads(recording):
@@ -152,8 +152,8 @@ def list_recordings(email):
     return recordings
 
 
-def download_recording(download_url, email, filename):
-    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
+def download_recording(download_url, email, filename, foldername):
+    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, foldername])
     full_filename = os.sep.join([dl_dir, filename])
     os.makedirs(dl_dir, exist_ok=True)
     response = requests.get(download_url, stream=True)
@@ -251,13 +251,13 @@ def main():
             downloads = get_downloads(recording)
             for file_type, file_extension, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
-                    filename = format_filename(
+                    filename, foldername = format_filename(
                         recording, file_type, file_extension, recording_type, recording_id)
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
                         index+1, total_count, recording_type, recording_id, truncated_url))
-                    success |= download_recording(download_url, email, filename)
+                    success |= download_recording(download_url, email, filename, foldername)
                     #success = True
                 else:
                     print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, recording_id))
