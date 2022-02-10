@@ -36,7 +36,7 @@ AUTHORIZATION_HEADER = {'Authorization': ACCESS_TOKEN}
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
-RECORDING_START_YEAR = 2021
+RECORDING_START_YEAR = 2022
 RECORDING_START_MONTH = 1
 RECORDING_START_DAY = 1
 RECORDING_END_DATE = date.today()
