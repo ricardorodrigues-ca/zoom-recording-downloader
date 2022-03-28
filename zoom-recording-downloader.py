@@ -77,6 +77,10 @@ def get_user_ids():
     # get total page count, convert to integer, increment by 1
     response = requests.get(url=API_ENDPOINT_USER_LIST,
                             headers=AUTHORIZATION_HEADER)
+    if not response.ok:
+        print(response)
+        print('Is your JWT still valid?')
+        exit(1)
     page_data = response.json()
     total_pages = int(page_data['page_count']) + 1
 
