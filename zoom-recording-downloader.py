@@ -169,12 +169,14 @@ def download_recording(download_url, email, filename):
     # create TQDM progress bar
     t = tqdm(total=total_size, unit='iB', unit_scale=True)
     try:
-        with open(full_filename, 'wb') as fd:
+        tmp_file = full_filename + ".tmp"
+        with open(tmp_file, 'wb') as fd:
             # with open(os.devnull, 'wb') as fd:  # write to dev/null when testing
             for chunk in response.iter_content(block_size):
                 t.update(len(chunk))
                 fd.write(chunk)  # write video chunk to disk
         t.close()
+        os.rename(tmp_file, full_filename)
         return True
     except Exception as e:
         # if there was some exception, print the error and return False
@@ -248,15 +250,23 @@ def main():
         for index, recording in enumerate(recordings):
             success = False
             meeting_id = recording['uuid']
-            if meeting_id in COMPLETED_MEETING_IDS:
-                print("==> Skipping already downloaded meeting: {}".format(meeting_id))
-                continue
+            # if meeting_id in COMPLETED_MEETING_IDS:
+            #     print("==> Skipping already downloaded meeting: {}".format(meeting_id))
+            #     continue
 
             downloads = get_downloads(recording)
             for file_type, file_extension, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
                     filename = format_filename(
                         recording, file_type, file_extension, recording_type, recording_id)
+
+                    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
+                    full_filename = os.sep.join([dl_dir, filename])
+
+                    if os.path.isfile(full_filename):
+                        print("==> Skipping already downloaded file: {}".format(full_filename))
+                        continue
+
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
