@@ -184,7 +184,7 @@ def download_recording(download_url, email, filename):
         return False
 
 
-def load_completed_meeting_ids():
+def load_completed_recording_ids():
     try:
         with open(COMPLETED_RECORDING_IDS_LOG, 'r') as fd:
             for line in fd:
@@ -233,7 +233,7 @@ def main():
                                   Version {}
 '''.format(APP_VERSION))
 
-    load_completed_meeting_ids()
+    load_completed_recording_ids()
 
     print(color.BOLD + "Getting user accounts..." + color.END)
     users = get_user_ids()
@@ -248,7 +248,6 @@ def main():
         print("==> Found {} recordings".format(total_count))
 
         for index, recording in enumerate(recordings):
-            success = False
             meeting_id = recording['uuid']
             # if meeting_id in COMPLETED_RECORDING_IDS:
             #     print("==> Skipping already downloaded meeting: {}".format(meeting_id))
@@ -260,23 +259,15 @@ def main():
                     filename = format_filename(
                         recording, file_type, file_extension, recording_type, recording_id)
 
-                    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
-                    full_filename = os.sep.join([dl_dir, filename])
-
                     if recording_id in COMPLETED_RECORDING_IDS:
                         print("==> Skipping already downloaded recording: {}".format(recording_id))
                         continue
-
-
-                    # if os.path.isfile(full_filename):
-                    #     print("==> Skipping already downloaded file: {}".format(full_filename))
-                    #     continue
-
+                    
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
                         index+1, total_count, recording_type, recording_id, truncated_url))
-                    success |= download_recording(download_url, email, filename)
+                    success = download_recording(download_url, email, filename)
 
                     if success:
                         with open(COMPLETED_RECORDING_IDS_LOG, 'a') as log:
@@ -290,7 +281,6 @@ def main():
                     #success = True
                 else:
                     print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, recording_id))
-                    success = False         
 
 
     print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
