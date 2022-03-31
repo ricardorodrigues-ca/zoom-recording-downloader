@@ -42,8 +42,8 @@ RECORDING_START_DAY = 1
 RECORDING_END_DATE = date.today()
 # RECORDING_END_DATE = date(2021, 8, 1)
 DOWNLOAD_DIRECTORY = 'downloads'
-COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
-COMPLETED_MEETING_IDS = set()
+COMPLETED_RECORDING_IDS_LOG = 'completed-downloads.log'
+COMPLETED_RECORDING_IDS = set()
 
 
 # define class for text colouring and highlighting
@@ -186,12 +186,12 @@ def download_recording(download_url, email, filename):
 
 def load_completed_meeting_ids():
     try:
-        with open(COMPLETED_MEETING_IDS_LOG, 'r') as fd:
+        with open(COMPLETED_RECORDING_IDS_LOG, 'r') as fd:
             for line in fd:
-                COMPLETED_MEETING_IDS.add(line.strip())
+                COMPLETED_RECORDING_IDS.add(line.strip())
     except FileNotFoundError:
         print("Log file not found. Creating new log file: ",
-              COMPLETED_MEETING_IDS_LOG)
+              COMPLETED_RECORDING_IDS_LOG)
         print()
 
 
@@ -250,7 +250,7 @@ def main():
         for index, recording in enumerate(recordings):
             success = False
             meeting_id = recording['uuid']
-            # if meeting_id in COMPLETED_MEETING_IDS:
+            # if meeting_id in COMPLETED_RECORDING_IDS:
             #     print("==> Skipping already downloaded meeting: {}".format(meeting_id))
             #     continue
 
@@ -263,27 +263,35 @@ def main():
                     dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
                     full_filename = os.sep.join([dl_dir, filename])
 
-                    if os.path.isfile(full_filename):
-                        print("==> Skipping already downloaded file: {}".format(full_filename))
+                    if recording_id in COMPLETED_RECORDING_IDS:
+                        print("==> Skipping already downloaded recording: {}".format(recording_id))
                         continue
+
+
+                    # if os.path.isfile(full_filename):
+                    #     print("==> Skipping already downloaded file: {}".format(full_filename))
+                    #     continue
 
                     # truncate URL to 64 characters
                     truncated_url = download_url[0:64] + "..."
                     print("==> Downloading ({} of {}) as {}: {}: {}".format(
                         index+1, total_count, recording_type, recording_id, truncated_url))
                     success |= download_recording(download_url, email, filename)
+
+                    if success:
+                        with open(COMPLETED_RECORDING_IDS_LOG, 'a') as log:
+                            COMPLETED_RECORDING_IDS.add(recording_id)
+                            log.write(recording_id)
+                            log.write('\n')
+                            log.flush()
+
+
+
                     #success = True
                 else:
                     print("### Incomplete Recording ({} of {}) for {}".format(index+1, total_count, recording_id))
                     success = False         
 
-            if success:
-                # if successful, write the ID of this recording to the completed file
-                with open(COMPLETED_MEETING_IDS_LOG, 'a') as log:
-                    COMPLETED_MEETING_IDS.add(meeting_id)
-                    log.write(meeting_id)
-                    log.write('\n')
-                    log.flush()
 
     print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
