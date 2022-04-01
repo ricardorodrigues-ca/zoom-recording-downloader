@@ -114,6 +114,8 @@ def get_downloads(recording):
         file_type = download['file_type']
         file_extension = download['file_extension']
         recording_id = download['id']
+        status = download['status']
+
         if file_type == "":
             recording_type = 'incomplete'
             #print("\download is: {}".format(download))
@@ -123,9 +125,6 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-
-        status = download['status']
-
         downloads.append((file_type, file_extension, download_url, recording_type, recording_id, status))
     return downloads
 
