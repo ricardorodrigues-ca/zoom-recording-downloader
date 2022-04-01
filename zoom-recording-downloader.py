@@ -123,7 +123,10 @@ def get_downloads(recording):
             recording_type = download['file_type']
         # must append JWT token to download_url
         download_url = download['download_url'] + "?access_token=" + JWT_TOKEN
-        downloads.append((file_type, file_extension, download_url, recording_type, recording_id))
+
+        status = download['status']
+
+        downloads.append((file_type, file_extension, download_url, recording_type, recording_id, status))
     return downloads
 
 
@@ -254,8 +257,8 @@ def main():
             #     continue
 
             downloads = get_downloads(recording)
-            for file_type, file_extension, download_url, recording_type, recording_id in downloads:
-                if recording_type != 'incomplete':
+            for file_type, file_extension, download_url, recording_type, recording_id, status in downloads:
+                if recording_type != 'incomplete' and status == 'completed':
                     filename = format_filename(
                         recording, file_type, file_extension, recording_type, recording_id)
 
