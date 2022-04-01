@@ -104,8 +104,8 @@ def format_filename(recording, file_type, file_extension, recording_type, record
     topic = recording['topic'].replace('/', '&')
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time'])
-    return '{} - {} UTC - {} - {}.{}'.format(
-        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+" - "+rec_type, recording_id, file_extension.lower())
+    return '{} - {} UTC - {}{}.{}'.format(
+        meeting_time.strftime('%Y.%m.%d'), meeting_time.strftime('%I.%M %p'), topic+"/"+rec_type, recording_id, file_extension.lower())
 
 
 def get_downloads(recording):
@@ -161,7 +161,7 @@ def list_recordings(email):
 def download_recording(download_url, email, filename):
     dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, email])
     full_filename = os.sep.join([dl_dir, filename])
-    os.makedirs(dl_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(full_filename), exist_ok=True)
     response = requests.get(download_url, stream=True)
 
     # total size in bytes.
@@ -257,6 +257,9 @@ def main():
 
             downloads = get_downloads(recording)
             for file_type, file_extension, download_url, recording_type, recording_id, status in downloads:
+
+                #print(file_type, file_extension, download_url, recording_type, recording_id, status)
+
                 if recording_type != 'incomplete' and status == 'completed':
                     filename = format_filename(
                         recording, file_type, file_extension, recording_type, recording_id)
