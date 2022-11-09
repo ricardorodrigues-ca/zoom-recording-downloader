@@ -22,6 +22,7 @@ import datetime
 from datetime import date
 from dateutil import relativedelta
 from datetime import date, timedelta
+from pathvalidate import sanitize_filepath, sanitize_filename
 import itertools
 import requests
 import time
@@ -158,6 +159,8 @@ def list_recordings(email):
 
 def download_recording(download_url, email, filename, foldername):
     dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, foldername])
+    dl_dir = sanitize_filepath(dl_dir)
+    filename = sanitize_filename(filename)
     full_filename = os.sep.join([dl_dir, filename])
     os.makedirs(dl_dir, exist_ok=True)
     response = requests.get(download_url, stream=True)
