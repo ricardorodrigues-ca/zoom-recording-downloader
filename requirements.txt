@@ -4,4 +4,4 @@ progressbar
 python-dateutil
 requests
 tqdm
-
+pathvalidate
