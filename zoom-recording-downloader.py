@@ -101,7 +101,7 @@ def get_user_ids():
 
 def format_filename(recording, file_type, file_extension, recording_type, recording_id):
     uuid = recording['uuid']
-    topic = recording['topic'].replace('/', '&')
+    topic = recording['topic'].replace(':', '&')
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parse(recording['start_time']).strftime('%Y.%m.%d - %I.%M %p UTC')
     return '{} - {} - {}.{}'.format(
