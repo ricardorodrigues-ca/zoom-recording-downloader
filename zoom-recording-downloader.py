@@ -137,7 +137,7 @@ def format_filename(params):
 
     return (
         f"{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension.lower()}",
-        f"{topic} - {topic}"
+        f"{topic} - {meeting_time}"
     )
 
 
