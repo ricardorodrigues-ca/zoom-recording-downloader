@@ -49,7 +49,7 @@ COMPLETED_MEETING_IDS = set()
 class color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
-    DARKCYAN = "\033[36m"
+    DARK_CYAN = "\033[36m"
     BLUE = "\033[94m"
     GREEN = "\033[92m"
     YELLOW = "\033[93m"
