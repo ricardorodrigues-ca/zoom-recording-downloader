@@ -35,7 +35,6 @@ CLIENT_SECRET = CONF["OAuth"]["client_secret"]
 APP_VERSION = "3.0 (OAuth)"
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
-# Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
 RECORDING_START_YEAR = datetime.date.today().year
 RECORDING_START_MONTH = 1
 RECORDING_START_DAY = 1
@@ -45,7 +44,6 @@ COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
 
 
-# define class for text colouring and highlighting
 class Color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
