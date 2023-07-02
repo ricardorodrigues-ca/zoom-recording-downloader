@@ -245,8 +245,8 @@ def download_recording(download_url, email, filename, foldername):
 
     except Exception as e:
         print(
-            f"the video recording for user with email '{email}' could not be downloaded "
-            f"because '{e}'"
+            f"the video recording with filename '{filename}' for user with email '{email}' could "
+            f"not be downloaded because '{e}'"
         )
 
         return False
