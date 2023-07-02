@@ -73,15 +73,13 @@ def load_access_token():
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    response = requests.request("POST", url, headers=headers)
-
-    jdata = json.loads(response.text)
+    response = json.loads(requests.request("POST", url, headers=headers).text)
 
     global ACCESS_TOKEN
     global AUTHORIZATION_HEADER
 
     try:
-        ACCESS_TOKEN = jdata["access_token"]
+        ACCESS_TOKEN = response["access_token"]
         AUTHORIZATION_HEADER = {
             "Authorization": f"Bearer {ACCESS_TOKEN}",
             "Content-Type": "application/json"
