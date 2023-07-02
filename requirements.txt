@@ -1,7 +1,6 @@
 dateutils
-progress
-progressbar
+flake8
+pathvalidate
 python-dateutil
 requests
 tqdm
-pathvalidate
