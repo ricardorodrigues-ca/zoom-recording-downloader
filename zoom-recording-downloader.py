@@ -11,10 +11,10 @@
 # Forked from:  https://gist.github.com/danaspiegel/c33004e52ffacb60c24215abf8301680
 
 # system libraries
-from signal import signal, SIGINT
 import base64
 import json
 import os
+import signal
 import sys as system
 
 # installed libraries
@@ -375,6 +375,6 @@ def main():
 
 if __name__ == "__main__":
     # tell Python to shutdown gracefully when SIGINT is received
-    signal(SIGINT, handle_graceful_shutdown)
+    signal.signal(signal.SIGINT, handle_graceful_shutdown)
 
     main()
