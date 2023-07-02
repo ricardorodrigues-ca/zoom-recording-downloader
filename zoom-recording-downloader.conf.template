@@ -2,6 +2,6 @@
 	"OAuth": {
 		"account_id": "<ACCOUNT_ID>",
 		"client_id": "<CLIENT_ID>",
-		"client_service": "<CLIENT_SERVICE>"
+		"client_secret": "<CLIENT_SECRET>"
 	}
 }

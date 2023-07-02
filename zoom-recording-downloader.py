@@ -29,9 +29,9 @@ CONF_PATH = "zoom-recording-downloader.conf"
 with open(CONF_PATH, encoding="utf-8-sig") as json_file:
     CONF = json.loads(json_file.read())
 
-ACCOUNT_ID = CONF["account_id"]
-CLIENT_ID = CONF["client_id"]
-CLIENT_SECRET = CONF["client_secret"]
+ACCOUNT_ID = CONF["OAuth"]["account_id"]
+CLIENT_ID = CONF["OAuth"]["client_id"]
+CLIENT_SECRET = CONF["OAuth"]["client_secret"]
 
 APP_VERSION = "3.0 (OAuth)"
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
