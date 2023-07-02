@@ -20,4 +20,5 @@ completed-downloads.log
 *.code-workspace
 
 # Ignore conf file
-*.conf
+zoom-recording-downloader.conf
+restricted-zoom-recording-downloader.conf
