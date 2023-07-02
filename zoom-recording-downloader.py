@@ -4,8 +4,7 @@
 # Description:  Zoom Recording Downloader is a cross-platform Python script
 #               that uses Zoom's API (v2) to download and organize all
 #               cloud recordings from a Zoom account onto local storage.
-#               This Python script uses the JSON Web Token (JWT)
-#               method of accessing the Zoom API
+#               This Python script uses the OAuth method of accessing the Zoom API
 # Created:      2020-04-26
 # Author:       Ricardo Rodrigues
 # Website:      https://github.com/ricardorodrigues-ca/zoom-recording-downloader
