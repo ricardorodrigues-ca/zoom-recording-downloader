@@ -11,6 +11,9 @@
 # Website:      https://github.com/ricardorodrigues-ca/zoom-recording-downloader
 # Forked from:  https://gist.github.com/danaspiegel/c33004e52ffacb60c24215abf8301680
 
+# Import json and base64 needed for Zoom OAuth
+import json
+import base64
 # Import TQDM progress bar library
 from tqdm import tqdm
 # Import app environment variables
@@ -30,9 +33,10 @@ import sys
 import os
 APP_VERSION = "2.1"
 
-# JWT_TOKEN now lives in appenv.py
-ACCESS_TOKEN = 'Bearer ' + JWT_TOKEN
-AUTHORIZATION_HEADER = {'Authorization': ACCESS_TOKEN}
+# To get these 3 infos, create a 'Server-to-Server OAuth' on Zoom Developers web site. Set permissions in 'Scopes' for all the itens in account, meetings, recordings, users.
+ACCOUNT_ID = ''
+CLIENT_ID = ''
+CLIENT_SECRET = ''
 
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
@@ -60,6 +64,33 @@ class color:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+# New OAuth function, thanks to https://github.com/freelimiter
+def load_access_token():
+
+    url = "https://zoom.us/oauth/token?grant_type=account_credentials&account_id=" + ACCOUNT_ID
+
+    client_cred = CLIENT_ID + ":" + CLIENT_SECRET
+    client_cred_base64_string = base64.b64encode(client_cred.encode('utf-8')).decode('utf-8')
+
+    headers = {
+    'Authorization': 'Basic ' + client_cred_base64_string,
+    'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
+    response = requests.request("POST", url, headers=headers)
+
+    jdata = json.loads(response.text)
+
+    global ACCESS_TOKEN
+    global AUTHORIZATION_HEADER
+
+    try:
+        ACCESS_TOKEN = jdata["access_token"]
+        AUTHORIZATION_HEADER = {'Authorization': 'Bearer ' + ACCESS_TOKEN,
+                            'Content-Type': 'application/json'}
+
+    except KeyError:
+        print("The key 'access_token' wasn't found.")
 
 def API_ENDPOINT_RECORDING_LIST(email):
     API_ENDPOINT = 'https://api.zoom.us/v2/users/' + email + '/recordings'
@@ -234,6 +265,9 @@ def main():
                                   Version {}
 '''.format(APP_VERSION))
 
+    # new OAuth authentication
+    load_access_token()
+    
     load_completed_meeting_ids()
 
     print(color.BOLD + "Getting user accounts..." + color.END)
