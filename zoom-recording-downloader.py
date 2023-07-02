@@ -89,16 +89,9 @@ def load_access_token():
         print("The key 'access_token' wasn't found.")
 
 
-def get_credentials(host_id, page_number, rec_start_date):
-    return {
-        "host_id": host_id,
-        "page_number": page_number,
-        "from": rec_start_date,
-    }
-
-
-def get_user_ids():
-    # get total page count, convert to integer, increment by 1
+def get_users():
+    """ loop through pages and return all users
+    """
     response = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER)
 
     if not response.ok:
@@ -109,14 +102,12 @@ def get_user_ids():
     page_data = response.json()
     total_pages = int(page_data["page_count"]) + 1
 
-    # results will be appended to this list
-    all_entries = []
+    all_users = []
 
-    # loop through all pages and return user data
     for page in range(1, total_pages):
         url = f"{API_ENDPOINT_USER_LIST}?page_number={str(page)}"
         user_data = requests.get(url=url, headers=AUTHORIZATION_HEADER).json()
-        user_ids = ([
+        users = ([
             (
                 user["email"],
                 user["id"],
@@ -126,11 +117,10 @@ def get_user_ids():
             for user in user_data["users"]
         ])
 
-        all_entries.extend(user_ids)
-        data = all_entries
+        all_users.extend(users)
         page += 1
 
-    return data
+    return all_users
 
 
 def format_filename(params):
@@ -305,7 +295,7 @@ def main():
     load_completed_meeting_ids()
 
     print(Color.BOLD + "Getting user accounts..." + Color.END)
-    users = get_user_ids()
+    users = get_users()
 
     for email, user_id, first_name, last_name in users:
         print(Color.BOLD + f"\nGetting recording list for {first_name} {last_name} - ({email})")
