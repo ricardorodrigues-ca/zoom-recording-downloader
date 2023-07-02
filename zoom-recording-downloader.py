@@ -47,7 +47,7 @@ COMPLETED_MEETING_IDS = set()
 
 
 # define class for text colouring and highlighting
-class color:
+class Color:
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
     DARK_CYAN = "\033[36m"
@@ -263,7 +263,7 @@ def load_completed_meeting_ids():
 
 
 def handle_graceful_shutdown():
-    print(color.RED + "\nSIGINT or CTRL-C detected. system.exiting gracefully." + color.END)
+    print(Color.RED + "\nSIGINT or CTRL-C detected. system.exiting gracefully." + Color.END)
 
     system.exit(0)
 
@@ -306,11 +306,11 @@ def main():
 
     load_completed_meeting_ids()
 
-    print(color.BOLD + "Getting user accounts..." + color.END)
+    print(Color.BOLD + "Getting user accounts..." + Color.END)
     users = get_user_ids()
 
     for email, user_id, first_name, last_name in users:
-        print(color.BOLD + f"\nGetting recording list for {first_name} {last_name} - ({email})")
+        print(Color.BOLD + f"\nGetting recording list for {first_name} {last_name} - ({email})")
 
         recordings = list_recordings(user_id)
         total_count = len(recordings)
@@ -358,14 +358,14 @@ def main():
                     log.write('\n')
                     log.flush()
 
-    print(color.BOLD + color.GREEN + "\n*** All done! ***" + color.END)
+    print(Color.BOLD + Color.GREEN + "\n*** All done! ***" + Color.END)
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
     print(
-        color.BLUE +
+        Color.BLUE +
         "\nRecordings have been saved to: " +
-        color.UNDERLINE +
+        Color.UNDERLINE +
         f"{save_location}" +
-        color.END +
+        Color.END +
         "\n"
     )
 
