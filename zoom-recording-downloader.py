@@ -17,7 +17,7 @@ import base64
 # Import TQDM progress bar library
 from tqdm import tqdm
 # Import app environment variables
-from appenv import JWT_TOKEN
+#from appenv import JWT_TOKEN
 from sys import exit
 from signal import signal, SIGINT
 from dateutil.parser import parse
@@ -31,9 +31,9 @@ import requests
 import time
 import sys
 import os
-APP_VERSION = "2.1"
+APP_VERSION = "3.0 (OAuth)"
 
-# To get these 3 infos, create a 'Server-to-Server OAuth' on Zoom Developers web site. Set permissions in 'Scopes' for all the itens in account, meetings, recordings, users.
+# To get these three values, create a 'Server-to-Server OAuth' on Zoom's Developer page. Set permissions in 'Scopes' for all the items under Account, Meetings, Recordings and Users.
 ACCOUNT_ID = ''
 CLIENT_ID = ''
 CLIENT_SECRET = ''
@@ -41,7 +41,7 @@ CLIENT_SECRET = ''
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
-RECORDING_START_YEAR = 2022
+RECORDING_START_YEAR = 2023
 RECORDING_START_MONTH = 1
 RECORDING_START_DAY = 1
 RECORDING_END_DATE = date.today()
