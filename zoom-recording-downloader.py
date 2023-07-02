@@ -189,19 +189,11 @@ def list_recordings(email):
     """
     recordings = []
 
-    PER_DELTA = (
-        per_delta(
-            datetime.date(
-                RECORDING_START_YEAR,
-                RECORDING_START_MONTH,
-                RECORDING_START_DAY
-            ),
-            RECORDING_END_DATE,
-            datetime.timedelta(days=30)
-        )
-    )
-
-    for start, end in PER_DELTA:
+    for start, end in per_delta(
+        datetime.date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY),
+        RECORDING_END_DATE,
+        datetime.timedelta(days=30)
+    ):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(
             url=f"https://api.zoom.us/v2/users/{email}/recordings",
