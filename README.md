@@ -19,7 +19,7 @@ $ pip3 install -r requirements.txt
 
 ## Usage ##
 
-_Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [Server-to-Server OAuth app](https://marketplace.zoom.us/docs/guides/build/jwt-app) with your credentials_
+_Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [Server-to-Server OAuth app](https://developers.zoom.us/docs/internal-apps) with your credentials_
 
 1. Create a [server-to-server OAuth app](https://marketplace.zoom.us/user/build), set up your app and collect your credentials. For questions on this, reference the docs on creating a server-to-server app. Make sure you activate the app. Follow Zoom's [set up documentation](https://marketplace.zoom.us/docs/guides/build/server-to-server-oauth-app/) or [this video](https://www.youtube.com/watch?v=OkBE7CHVzho) for a more complete walk through.
 
