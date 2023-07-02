@@ -19,17 +19,23 @@ $ pip3 install -r requirements.txt
 
 ## Usage ##
 
-_Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [JWT app](https://marketplace.zoom.us/docs/guides/build/jwt-app) with your token_
+_Attention: You will require a [Zoom Developer account](https://marketplace.zoom.us/) in order to create a [Server-to-Server OAuth app](https://marketplace.zoom.us/docs/guides/build/jwt-app) with your credentials_
 
-Create a file called **appenv.py** with a variable called `JWT_TOKEN` that contains the JSON Web Token from your JWT app:
+1. Create a [server-to-server OAuth app](https://marketplace.zoom.us/user/build), set up your app and collect your credentials. For questions on this, reference the docs on creating a server-to-server app. Make sure you activate the app. Follow Zoom's [set up documentation](https://marketplace.zoom.us/docs/guides/build/server-to-server-oauth-app/) or [this video](https://www.youtube.com/watch?v=OkBE7CHVzho) for a more complete walk through.
 
-    JWT_TOKEN = 'your_token_goes_here'
+2. Add the necessary scopes to your app. In your app's Scopes tab, add the following scopes: `account:master`, `account:read:admin`, `account:write:admin`, `information_barriers:read:admin`, `information_barriers:read:master`, `information_barriers:write:admin`, `information_barriers:write:master`, `meeting:master`, `meeting:read:admin`, `meeting:read:admin:sip_dialing`, `meeting:write:admin`, `meeting_token:read:admin:live_streaming`, `meeting_token:read:admin:local_archiving`, `meeting_token:read:admin:local_recording`, `recording:master`, `recording:read:admin`, `recording:write:admin`, `user:master`, `user:read:admin`, `user:write:admin`.
 
-Open the **zoom-recording-downloader.py** file using your editor of choice, and modify the following variables to reflect your environment:
+3. Add environment variables. Open the **zoom-recording-downloader.py** file using your editor of choice and fill in the following variables to reflect your environment:
 
-- Set these variables to the earliest recording date you wish to download, within a six month period (default is January 1st, 2022)
+- Enter in your Zoom OAuth app credentials
 
-      RECORDING_START_YEAR = 2022
+      ACCOUNT_ID = '<your_zoom_account_id>'
+      CLIENT_ID = '<your_zoom_client_id>'
+      CLIENT_SECRET = '<your_zoom_client_secret>'
+
+- Set these variables to the earliest recording date you wish to download, within a six month period (default is January 1st, 2023)
+
+      RECORDING_START_YEAR = 2023
       
       RECORDING_START_MONTH = 1
       
