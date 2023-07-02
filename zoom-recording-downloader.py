@@ -84,7 +84,7 @@ def load_access_token():
         }
 
     except KeyError:
-        print("The key 'access_token' wasn't found.")
+        print(f"{Color.RED}### The key 'access_token' wasn't found.{Color.END}")
 
 
 def get_users():
@@ -138,6 +138,9 @@ def format_filename(params):
 
 
 def get_downloads(recording):
+    if not recording.get("recording_files"):
+        raise Exception
+
     downloads = []
     for download in recording["recording_files"]:
         file_type = download["file_type"]
@@ -207,8 +210,8 @@ def list_recordings(email):
     return recordings
 
 
-def download_recording(download_url, email, filename, foldername):
-    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, foldername])
+def download_recording(download_url, email, filename, folder_name):
+    dl_dir = os.sep.join([DOWNLOAD_DIRECTORY, folder_name])
     sanitized_download_dir = path_validate.sanitize_filepath(dl_dir)
     sanitized_filename = path_validate.sanitize_filename(filename)
     full_filename = os.sep.join([sanitized_download_dir, sanitized_filename])
@@ -234,8 +237,8 @@ def download_recording(download_url, email, filename, foldername):
 
     except Exception as e:
         print(
-            f"the video recording with filename '{filename}' for user with email '{email}' could "
-            f"not be downloaded because '{e}'"
+            f"{Color.RED}### The video recording with filename '{filename}' for user with email "
+            f"'{email}' could not be downloaded because {Color.END}'{e}'"
         )
 
         return False
@@ -247,12 +250,14 @@ def load_completed_meeting_ids():
             [COMPLETED_MEETING_IDS.add(line.strip()) for line in fd]
 
     except FileNotFoundError:
-        print("Log file not found. Creating new log file: ", COMPLETED_MEETING_IDS_LOG)
-        print()
+        print(
+            f"{Color.RED}### Log file not found. Creating new log file: {Color.END}"
+            f"{COMPLETED_MEETING_IDS_LOG}\n"
+        )
 
 
-def handle_graceful_shutdown():
-    print(Color.RED + "\nSIGINT or CTRL-C detected. system.exiting gracefully." + Color.END)
+def handle_graceful_shutdown(*_):
+    print(f"\n{Color.DARK_CYAN}SIGINT or CTRL-C detected. system.exiting gracefully.{Color.END}")
 
     system.exit(0)
 
@@ -266,8 +271,8 @@ def main():
     os.system('cls' if os.name == 'nt' else 'clear')
 
     # show the logo
-    print(
-        f"""
+    print(f"""
+        {Color.DARK_CYAN}
 
 
                              ,*****************.
@@ -288,18 +293,20 @@ def main():
                         Zoom Recording Downloader
 
                             Version {APP_VERSION}
-        """
-    )
+
+        {Color.END}
+    """)
 
     load_access_token()
 
     load_completed_meeting_ids()
 
-    print(Color.BOLD + "Getting user accounts..." + Color.END)
+    print(f"{Color.BOLD}Getting user accounts...{Color.END}")
     users = get_users()
 
     for email, user_id, first_name, last_name in users:
-        print(Color.BOLD + f"\nGetting recording list for {first_name} {last_name} - ({email})")
+        fullName = f"{first_name} {last_name} - " if first_name and last_name else ""
+        print(f"\n{Color.BOLD}Getting recording list for {fullName}({email}){Color.END}")
 
         recordings = list_recordings(user_id)
         total_count = len(recordings)
@@ -313,11 +320,21 @@ def main():
 
                 continue
 
-            downloads = get_downloads(recording)
-            for file_extension, download_url, recording_type, recording_id in downloads:
+            try:
+                downloads = get_downloads(recording)
+            except Exception:
+                print(
+                    f"{Color.RED}### Recording files missing for call with id {Color.END}"
+                    f"'{recording['id']}'\n"
+                )
+
+                continue
+
+            for file_type, file_extension, download_url, recording_type, recording_id in downloads:
                 if recording_type != 'incomplete':
-                    filename, foldername = (
+                    filename, folder_name = (
                         format_filename({
+                            "file_type": file_type,
                             "recording": recording,
                             "file_extension": file_extension,
                             "recording_type": recording_type,
@@ -331,11 +348,12 @@ def main():
                         f"==> Downloading ({index + 1} of {total_count}) as {recording_type}: "
                         f"{recording_id}: {truncated_url}"
                     )
-                    success |= download_recording(download_url, email, filename, foldername)
+                    success |= download_recording(download_url, email, filename, folder_name)
 
                 else:
                     print(
-                        f"### Incomplete Recording ({index+1} of {total_count}) for {recording_id}"
+                        f"{Color.RED}### Incomplete Recording ({index + 1} of {total_count}) for "
+                        f"recording with id {Color.END}'{recording_id}'"
                     )
                     success = False
 
@@ -347,15 +365,11 @@ def main():
                     log.write('\n')
                     log.flush()
 
-    print(Color.BOLD + Color.GREEN + "\n*** All done! ***" + Color.END)
+    print(f"\n{Color.BOLD}{Color.GREEN}*** All done! ***{Color.END}")
     save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
     print(
-        Color.BLUE +
-        "\nRecordings have been saved to: " +
-        Color.UNDERLINE +
-        f"{save_location}" +
-        Color.END +
-        "\n"
+        f"\n{Color.BLUE}Recordings have been saved to: {Color.UNDERLINE}{save_location}"
+        f"{Color.END}\n"
     )
 
 
