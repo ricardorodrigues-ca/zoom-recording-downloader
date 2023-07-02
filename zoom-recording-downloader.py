@@ -262,7 +262,7 @@ def main():
 
                            Zoom Recording Downloader
 
-                                  Version {}
+                                Version {}
 '''.format(APP_VERSION))
 
     # new OAuth authentication
