@@ -33,11 +33,11 @@ ACCOUNT_ID = CONF["account_id"]
 CLIENT_ID = CONF["client_id"]
 CLIENT_SECRET = CONF["client_secret"]
 
-APP_VERSION = "2.1"
+APP_VERSION = "3.0 (OAuth)"
 API_ENDPOINT_USER_LIST = 'https://api.zoom.us/v2/users'
 
 # Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
-RECORDING_START_YEAR = 2022
+RECORDING_START_YEAR = 2023
 RECORDING_START_MONTH = 1
 RECORDING_START_DAY = 1
 RECORDING_END_DATE = datetime.date.today()
