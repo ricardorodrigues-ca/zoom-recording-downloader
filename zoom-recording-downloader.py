@@ -94,7 +94,11 @@ def get_users():
 
     if not response.ok:
         print(response)
-        print("Is your access token still valid?")
+        print(
+            f"{Color.RED}### Could not retrieve users. Please make sure that your access "
+            f"token is still valid{Color.END}"
+        )
+
         system.exit(1)
 
     page_data = response.json()
