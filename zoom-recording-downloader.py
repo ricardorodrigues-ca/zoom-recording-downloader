@@ -301,8 +301,10 @@ def main():
     users = get_users()
 
     for email, user_id, first_name, last_name in users:
-        fullName = f"{first_name} {last_name} - " if first_name and last_name else ""
-        print(f"\n{Color.BOLD}Getting recording list for {fullName}({email}){Color.END}")
+        userInfo = (
+            f"{first_name} {last_name} - {email}" if first_name and last_name else f"{email}"
+        )
+        print(f"\n{Color.BOLD}Getting recording list for {userInfo}{Color.END}")
 
         recordings = list_recordings(user_id)
         total_count = len(recordings)
