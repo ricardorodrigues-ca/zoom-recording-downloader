@@ -209,7 +209,8 @@ def list_recordings(email):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(
             url=f"https://api.zoom.us/v2/users/{email}/recordings",
-            headers=AUTHORIZATION_HEADER, params=post_data
+            headers=AUTHORIZATION_HEADER,
+            params=post_data
         )
         recordings_data = response.json()
         recordings.extend(recordings_data["meetings"])
