@@ -176,6 +176,8 @@ def per_delta(start, end, delta):
 
 
 def list_recordings(email):
+    """Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
+    """
     recordings = []
 
     PER_DELTA = (
