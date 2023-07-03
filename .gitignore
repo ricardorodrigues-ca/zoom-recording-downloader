@@ -1,9 +1,6 @@
 # Ignore Mac system files
 .DS_store
 
-# Ignore app-env.py
-appenv.py
-
 # Ignore token.py, if present
 token.py
 
