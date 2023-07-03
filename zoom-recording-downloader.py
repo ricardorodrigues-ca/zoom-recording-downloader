@@ -252,7 +252,7 @@ def load_completed_meeting_ids():
         )
 
 
-def handle_graceful_shutdown(*_):
+def handle_graceful_shutdown(signal_received, frame):
     print(f"\n{Color.DARK_CYAN}SIGINT or CTRL-C detected. system.exiting gracefully.{Color.END}")
 
     system.exit(0)
