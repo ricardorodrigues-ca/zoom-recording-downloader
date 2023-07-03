@@ -27,9 +27,9 @@ _Attention: You will require a [Zoom Developer account](https://marketplace.zoom
 
 3. Copy **zoom-recording-downloader.conf.template** to a new file named **zoom-recording-downloader.conf** and fill in your Zoom Server-to-Server OAuth app credentials:
 
-    ```"account_id": "<ACCOUNT_ID>",
-    "client_id": "<CLIENT_ID>",
-    "client_secret": "<CLIENT_SECRET>"```
+      "account_id": "<ACCOUNT_ID>",
+      "client_id": "<CLIENT_ID>",
+      "client_secret": "<CLIENT_SECRET>"
 
 4. Add environment variables. Open the **zoom-recording-downloader.py** file using your editor of choice and fill in the following variables to reflect your environment:
 
