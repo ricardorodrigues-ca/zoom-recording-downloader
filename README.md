@@ -38,11 +38,11 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 
 4. Add environment variables. Open the **zoom-recording-downloader.py** file using your editor of choice and fill in the following variables to reflect your environment:
 
-- Specify the folder name where the recordings will be downloaded (default = downloads)
+- Specify the folder name where the recordings will be downloaded (default is 'downloads')
 
       DOWNLOAD_DIRECTORY = 'downloads'
 
-- Specify the name of the log file that will store the ID's of downloaded recordings (default = completed-downloads.log)
+- Specify the name of the log file that will store the ID's of downloaded recordings (default is 'completed-downloads.log')
 
       COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 
