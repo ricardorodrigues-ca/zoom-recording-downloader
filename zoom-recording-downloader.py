@@ -12,6 +12,7 @@
 
 # system libraries
 import base64
+import datetime
 import json
 import os
 import re as regex
@@ -19,7 +20,6 @@ import signal
 import sys as system
 
 # installed libraries
-import datetime
 import dateutil.parser as parser
 import pathvalidate as path_validate
 import requests
