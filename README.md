@@ -25,21 +25,13 @@ _Attention: You will require a [Zoom Developer account](https://marketplace.zoom
 
 2. Add the necessary scopes to your app. In your app's Scopes tab, add the following scopes: `account:master`, `account:read:admin`, `account:write:admin`, `information_barriers:read:admin`, `information_barriers:read:master`, `information_barriers:write:admin`, `information_barriers:write:master`, `meeting:master`, `meeting:read:admin`, `meeting:read:admin:sip_dialing`, `meeting:write:admin`, `meeting_token:read:admin:live_streaming`, `meeting_token:read:admin:local_archiving`, `meeting_token:read:admin:local_recording`, `recording:master`, `recording:read:admin`, `recording:write:admin`, `user:master`, `user:read:admin`, `user:write:admin`.
 
-3. Add environment variables. Open the **zoom-recording-downloader.py** file using your editor of choice and fill in the following variables to reflect your environment:
+3. Copy **zoom-recording-downloader.conf.template** to a new file named **zoom-recording-downloader.conf** and fill in your Zoom Server-to-Server OAuth app credentials:
 
-- Enter in your Zoom OAuth app credentials
+    "account_id": "<ACCOUNT_ID>",
+    "client_id": "<CLIENT_ID>",
+    "client_secret": "<CLIENT_SECRET>"
 
-      ACCOUNT_ID = '<your_zoom_account_id>'
-      CLIENT_ID = '<your_zoom_client_id>'
-      CLIENT_SECRET = '<your_zoom_client_secret>'
-
-- Set these variables to the earliest recording date you wish to download, within a six month period (default is January 1st, 2023)
-
-      RECORDING_START_YEAR = 2023
-      
-      RECORDING_START_MONTH = 1
-      
-      RECORDING_START_DAY = 1
+4. Add environment variables. Open the **zoom-recording-downloader.py** file using your editor of choice and fill in the following variables to reflect your environment:
 
 - Specify the folder name where the recordings will be downloaded (default = downloads)
 
