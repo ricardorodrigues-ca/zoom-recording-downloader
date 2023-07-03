@@ -247,7 +247,7 @@ def load_completed_meeting_ids():
 
     except FileNotFoundError:
         print(
-            f"{Color.RED}### Log file not found. Creating new log file: {Color.END}"
+            f"{Color.DARK_CYAN}Log file not found. Creating new log file: {Color.END}"
             f"{COMPLETED_MEETING_IDS_LOG}\n"
         )
 
