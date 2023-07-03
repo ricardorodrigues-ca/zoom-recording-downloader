@@ -14,6 +14,7 @@
 import base64
 import json
 import os
+import re as regex
 import signal
 import sys as system
 
@@ -131,7 +132,8 @@ def format_filename(params):
     recording_id = params["recording_id"]
     recording_type = params["recording_type"]
 
-    topic = recording["topic"].replace("/", "&")
+    invalid_chars_pattern = r'[<>:"/\\|?*\x00-\x1F]'
+    topic = regex.sub(invalid_chars_pattern, '', recording["topic"])
     rec_type = recording_type.replace("_", " ").title()
     meeting_time = parser.parse(recording["start_time"]).strftime("%Y.%m.%d - %I.%M %p UTC")
 
