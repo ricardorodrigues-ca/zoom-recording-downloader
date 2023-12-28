@@ -25,13 +25,35 @@ import pathvalidate as path_validate
 import requests
 import tqdm as progress_bar
 
+class Color:
+    PURPLE = "\033[95m"
+    CYAN = "\033[96m"
+    DARK_CYAN = "\033[36m"
+    BLUE = "\033[94m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    END = "\033[0m"
+
 CONF_PATH = "zoom-recording-downloader.conf"
 with open(CONF_PATH, encoding="utf-8-sig") as json_file:
     CONF = json.loads(json_file.read())
 
-ACCOUNT_ID = CONF["OAuth"]["account_id"]
-CLIENT_ID = CONF["OAuth"]["client_id"]
-CLIENT_SECRET = CONF["OAuth"]["client_secret"]
+def config(section, key, default=''):
+    try:
+        return CONF[section][key]
+    except KeyError:
+        if default == LookupError:
+            print(f"{Color.RED}### No value provided for {section}:{key} in {CONF_PATH}")
+            system.exit(1)
+        else:
+            return default
+
+ACCOUNT_ID = config("OAuth", "account_id", LookupError)
+CLIENT_ID = config("OAuth", "client_id", LookupError)
+CLIENT_SECRET = config("OAuth", "client_secret", LookupError)
 
 APP_VERSION = "3.0 (OAuth)"
 
@@ -46,17 +68,6 @@ COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
 COMPLETED_MEETING_IDS = set()
 
 
-class Color:
-    PURPLE = "\033[95m"
-    CYAN = "\033[96m"
-    DARK_CYAN = "\033[36m"
-    BLUE = "\033[94m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-    END = "\033[0m"
 
 
 def load_access_token():
