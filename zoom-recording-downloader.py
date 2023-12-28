@@ -24,6 +24,7 @@ import dateutil.parser as parser
 import pathvalidate as path_validate
 import requests
 import tqdm as progress_bar
+from zoneinfo import ZoneInfo
 
 class Color:
     PURPLE = "\033[95m"
@@ -68,7 +69,8 @@ DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
 COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
 COMPLETED_MEETING_IDS = set()
 
-
+MEETING_TIMEZONE = ZoneInfo(config("Recordings", "timezone", 'UTC'))
+MEETING_STRFTIME = config("Recordings", "strftime", '%Y.%m.%d - %I.%M %p UTC')
 
 
 def load_access_token():
@@ -147,7 +149,8 @@ def format_filename(params):
     invalid_chars_pattern = r'[<>:"/\\|?*\x00-\x1F]'
     topic = regex.sub(invalid_chars_pattern, '', recording["topic"])
     rec_type = recording_type.replace("_", " ").title()
-    meeting_time = parser.parse(recording["start_time"]).strftime("%Y.%m.%d - %I.%M %p UTC")
+    meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=datetime.timezone.utc)
+    meeting_time = meeting_time_utc.astimezone(MEETING_TIMEZONE).strftime(MEETING_STRFTIME)
 
     return (
         f"{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension.lower()}",

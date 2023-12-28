@@ -15,5 +15,7 @@
 		"start_day": "1",
 		"start_date": "2023-01-01",
 		"end_date": "2023-12-31",
+		"timezone": "America/Vancouver",
+		"strftime": "%Y.%m.%d-%H.%M%z",
 	}
 }
