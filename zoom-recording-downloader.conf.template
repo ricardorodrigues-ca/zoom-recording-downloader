@@ -3,5 +3,17 @@
 		"account_id": "<ACCOUNT_ID>",
 		"client_id": "<CLIENT_ID>",
 		"client_secret": "<CLIENT_SECRET>"
+	},
+	"_comment": "everything after this is optional",
+	"Storage": {
+		"completed_log": "completed-downloads.log",
+		"download_dir": "downloads"
+	},
+	"Recordings": {
+		"start_year": "2023",
+		"start_month": "1",
+		"start_day": "1",
+		"start_date": "2023-01-01",
+		"end_date": "2023-12-31",
 	}
 }

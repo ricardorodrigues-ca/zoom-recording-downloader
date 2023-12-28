@@ -59,10 +59,11 @@ APP_VERSION = "3.0 (OAuth)"
 
 API_ENDPOINT_USER_LIST = "https://api.zoom.us/v2/users"
 
-RECORDING_START_YEAR = datetime.date.today().year
-RECORDING_START_MONTH = 1
-RECORDING_START_DAY = 1
-RECORDING_END_DATE = datetime.date.today()
+RECORDING_START_YEAR = config("Recordings", "start_year", datetime.date.today().year)
+RECORDING_START_MONTH = config("Recordings", "start_month", 1)
+RECORDING_START_DAY = config("Recordings", "start_day", 1)
+RECORDING_START_DATE = parser.parse(config("Recordings", "start_date", f"{RECORDING_START_YEAR}-{RECORDING_START_MONTH}-{RECORDING_START_DAY}"))
+RECORDING_END_DATE = parser.parse(config("Recordings", "end_date", str(datetime.date.today())))
 DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
 COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
 COMPLETED_MEETING_IDS = set()
@@ -203,7 +204,7 @@ def list_recordings(email):
     recordings = []
 
     for start, end in per_delta(
-        datetime.date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY),
+        RECORDING_START_DATE,
         RECORDING_END_DATE,
         datetime.timedelta(days=30)
     ):
