@@ -152,7 +152,11 @@ def format_filename(params):
     topic = regex.sub(invalid_chars_pattern, '', recording["topic"])
     rec_type = recording_type.replace("_", " ").title()
     meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=datetime.timezone.utc)
-    meeting_time = meeting_time_utc.astimezone(MEETING_TIMEZONE).strftime(MEETING_STRFTIME)
+    meeting_time_local = meeting_time_utc.astimezone(MEETING_TIMEZONE)
+    year = meeting_time_local.strftime("%Y")
+    month = meeting_time_local.strftime("%m")
+    day = meeting_time_local.strftime("%d")
+    meeting_time = meeting_time_local.strftime(MEETING_STRFTIME)
 
     filename = MEETING_FILENAME.format(**locals())
     folder = MEETING_FOLDER.format(**locals())
