@@ -63,8 +63,8 @@ RECORDING_START_YEAR = datetime.date.today().year
 RECORDING_START_MONTH = 1
 RECORDING_START_DAY = 1
 RECORDING_END_DATE = datetime.date.today()
-DOWNLOAD_DIRECTORY = 'downloads'
-COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
+DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
+COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
 COMPLETED_MEETING_IDS = set()
 
 
