@@ -71,6 +71,8 @@ COMPLETED_MEETING_IDS = set()
 
 MEETING_TIMEZONE = ZoneInfo(config("Recordings", "timezone", 'UTC'))
 MEETING_STRFTIME = config("Recordings", "strftime", '%Y.%m.%d - %I.%M %p UTC')
+MEETING_FILENAME = config("Recordings", "filename", '{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension}')
+MEETING_FOLDER = config("Recordings", "folder", '{topic} - {meeting_time}')
 
 
 def load_access_token():
@@ -141,7 +143,7 @@ def get_users():
 
 
 def format_filename(params):
-    file_extension = params["file_extension"]
+    file_extension = params["file_extension"].lower()
     recording = params["recording"]
     recording_id = params["recording_id"]
     recording_type = params["recording_type"]
@@ -152,10 +154,9 @@ def format_filename(params):
     meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=datetime.timezone.utc)
     meeting_time = meeting_time_utc.astimezone(MEETING_TIMEZONE).strftime(MEETING_STRFTIME)
 
-    return (
-        f"{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension.lower()}",
-        f"{topic} - {meeting_time}"
-    )
+    filename = MEETING_FILENAME.format(**locals())
+    folder = MEETING_FOLDER.format(**locals())
+    return (filename, folder)
 
 
 def get_downloads(recording):

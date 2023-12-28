@@ -17,5 +17,7 @@
 		"end_date": "2023-12-31",
 		"timezone": "America/Vancouver",
 		"strftime": "%Y.%m.%d-%H.%M%z",
+		"filename": "{meeting_time}-{topic}-{rec_type}-{recording_id}.{file_extension}",
+		"folder": "{meeting_time}-{topic}"
 	}
 }
