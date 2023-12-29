@@ -79,9 +79,9 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 ```
 
 - Specify the timezone for the saved meeting times saved in the filenames (default is 'UTC')
-- You can use any timezone supported by [![ZoneInfo](https://docs.python.org/3/library/zoneinfo.html)]
+- You can use any timezone supported by [ZoneInfo](https://docs.python.org/3/library/zoneinfo.html)
 - Specify the time format for the saved meeting times in the filenames (default is '%Y.%m.%d - %I.%M %p UTC')
-- You can use any of the [![strftime format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)] supported by datetime
+- You can use any of the [strftime format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) supported by datetime
 
 ```
       {
