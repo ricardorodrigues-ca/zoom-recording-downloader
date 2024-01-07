@@ -24,27 +24,7 @@ import dateutil.parser as parser
 import pathvalidate as path_validate
 import requests
 import tqdm as progress_bar
-
-CONF_PATH = "zoom-recording-downloader.conf"
-with open(CONF_PATH, encoding="utf-8-sig") as json_file:
-    CONF = json.loads(json_file.read())
-
-ACCOUNT_ID = CONF["OAuth"]["account_id"]
-CLIENT_ID = CONF["OAuth"]["client_id"]
-CLIENT_SECRET = CONF["OAuth"]["client_secret"]
-
-APP_VERSION = "3.0 (OAuth)"
-
-API_ENDPOINT_USER_LIST = "https://api.zoom.us/v2/users"
-
-RECORDING_START_YEAR = datetime.date.today().year
-RECORDING_START_MONTH = 1
-RECORDING_START_DAY = 1
-RECORDING_END_DATE = datetime.date.today()
-DOWNLOAD_DIRECTORY = 'downloads'
-COMPLETED_MEETING_IDS_LOG = 'completed-downloads.log'
-COMPLETED_MEETING_IDS = set()
-
+from zoneinfo import ZoneInfo
 
 class Color:
     PURPLE = "\033[95m"
@@ -57,6 +37,42 @@ class Color:
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
     END = "\033[0m"
+
+CONF_PATH = "zoom-recording-downloader.conf"
+with open(CONF_PATH, encoding="utf-8-sig") as json_file:
+    CONF = json.loads(json_file.read())
+
+def config(section, key, default=''):
+    try:
+        return CONF[section][key]
+    except KeyError:
+        if default == LookupError:
+            print(f"{Color.RED}### No value provided for {section}:{key} in {CONF_PATH}")
+            system.exit(1)
+        else:
+            return default
+
+ACCOUNT_ID = config("OAuth", "account_id", LookupError)
+CLIENT_ID = config("OAuth", "client_id", LookupError)
+CLIENT_SECRET = config("OAuth", "client_secret", LookupError)
+
+APP_VERSION = "3.0 (OAuth)"
+
+API_ENDPOINT_USER_LIST = "https://api.zoom.us/v2/users"
+
+RECORDING_START_YEAR = config("Recordings", "start_year", datetime.date.today().year)
+RECORDING_START_MONTH = config("Recordings", "start_month", 1)
+RECORDING_START_DAY = config("Recordings", "start_day", 1)
+RECORDING_START_DATE = parser.parse(config("Recordings", "start_date", f"{RECORDING_START_YEAR}-{RECORDING_START_MONTH}-{RECORDING_START_DAY}"))
+RECORDING_END_DATE = parser.parse(config("Recordings", "end_date", str(datetime.date.today())))
+DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
+COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
+COMPLETED_MEETING_IDS = set()
+
+MEETING_TIMEZONE = ZoneInfo(config("Recordings", "timezone", 'UTC'))
+MEETING_STRFTIME = config("Recordings", "strftime", '%Y.%m.%d - %I.%M %p UTC')
+MEETING_FILENAME = config("Recordings", "filename", '{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension}')
+MEETING_FOLDER = config("Recordings", "folder", '{topic} - {meeting_time}')
 
 
 def load_access_token():
@@ -127,7 +143,7 @@ def get_users():
 
 
 def format_filename(params):
-    file_extension = params["file_extension"]
+    file_extension = params["file_extension"].lower()
     recording = params["recording"]
     recording_id = params["recording_id"]
     recording_type = params["recording_type"]
@@ -135,12 +151,16 @@ def format_filename(params):
     invalid_chars_pattern = r'[<>:"/\\|?*\x00-\x1F]'
     topic = regex.sub(invalid_chars_pattern, '', recording["topic"])
     rec_type = recording_type.replace("_", " ").title()
-    meeting_time = parser.parse(recording["start_time"]).strftime("%Y.%m.%d - %I.%M %p UTC")
+    meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=datetime.timezone.utc)
+    meeting_time_local = meeting_time_utc.astimezone(MEETING_TIMEZONE)
+    year = meeting_time_local.strftime("%Y")
+    month = meeting_time_local.strftime("%m")
+    day = meeting_time_local.strftime("%d")
+    meeting_time = meeting_time_local.strftime(MEETING_STRFTIME)
 
-    return (
-        f"{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension.lower()}",
-        f"{topic} - {meeting_time}"
-    )
+    filename = MEETING_FILENAME.format(**locals())
+    folder = MEETING_FOLDER.format(**locals())
+    return (filename, folder)
 
 
 def get_downloads(recording):
@@ -192,7 +212,7 @@ def list_recordings(email):
     recordings = []
 
     for start, end in per_delta(
-        datetime.date(RECORDING_START_YEAR, RECORDING_START_MONTH, RECORDING_START_DAY),
+        RECORDING_START_DATE,
         RECORDING_END_DATE,
         datetime.timedelta(days=30)
     ):
