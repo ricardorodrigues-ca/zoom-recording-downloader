@@ -117,5 +117,5 @@ For the previous formats you can use the following values
 5. Run command:
 
 ```sh
-python3 zoom-recording-downloader.py
+$ python3 zoom-recording-downloader.py
 ```
