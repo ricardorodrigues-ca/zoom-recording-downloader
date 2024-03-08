@@ -44,8 +44,8 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 ```
       {
               "Storage": {
-                      "download_dir": "downloads"
-                      "completed_log": "completed-downloads.log",
+                      "download_dir": "downloads",
+                      "completed_log": "completed-downloads.log"
               }
       }
 ```
@@ -58,7 +58,7 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
       {
               "Recordings": {
                       "start_date": "2023-01-01",
-                      "end_date": "2023-12-31",
+                      "end_date": "2023-12-31"
               }
       }
 ```
@@ -73,7 +73,7 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
               "Recordings": {
                       "start_year": "2023",
                       "start_month": "1",
-                      "start_day": "1",
+                      "start_day": "1"
               }
       }
 ```
@@ -87,7 +87,7 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
       {
               "Recordings": {
                       "timezone": "America/Vancouver",
-                      "strftime": "%Y.%m.%d-%H.%M%z",
+                      "strftime": "%Y.%m.%d-%H.%M%z"
               }
       }
 ```
