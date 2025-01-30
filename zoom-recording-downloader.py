@@ -39,8 +39,19 @@ class Color:
     END = "\033[0m"
 
 CONF_PATH = "zoom-recording-downloader.conf"
-with open(CONF_PATH, encoding="utf-8-sig") as json_file:
-    CONF = json.loads(json_file.read())
+
+try:
+    with open(CONF_PATH, encoding="utf-8-sig") as json_file:
+        CONF = json.loads(json_file.read())
+except json.JSONDecodeError as e:
+    print(f"{Color.RED}### Error parsing JSON in {CONF_PATH}: {e}")
+    system.exit(1)
+except FileNotFoundError:
+    print(f"{Color.RED}### Configuration file {CONF_PATH} not found")
+    system.exit(1)
+except Exception as e:
+    print(f"{Color.RED}### Unexpected error: {e}")
+    system.exit(1)
 
 def config(section, key, default=''):
     try:
