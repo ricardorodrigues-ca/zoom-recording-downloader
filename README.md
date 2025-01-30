@@ -87,7 +87,7 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 ```
       {
               "Recordings": {
-                      "timezone": "America/Vancouver",
+                      "timezone": "America/New_York",
                       "strftime": "%Y.%m.%d-%H.%M%z"
               }
       }
