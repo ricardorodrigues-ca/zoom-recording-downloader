@@ -10,12 +10,12 @@
 		"download_dir": "downloads"
 	},
 	"Recordings": {
-		"start_year": "2023",
+		"start_year": "2024",
 		"start_month": "1",
 		"start_day": "1",
-		"start_date": "2023-01-01",
-		"end_date": "2023-12-31",
-		"timezone": "America/Vancouver",
+		"start_date": "2024-01-01",
+		"end_date": "2024-12-31",
+		"timezone": "America/New_York",
 		"strftime": "%Y.%m.%d-%H.%M%z",
 		"filename": "{meeting_time}-{topic}-{rec_type}-{recording_id}.{file_extension}",
 		"folder": "{year}/{month}/{meeting_time}-{topic}"

@@ -23,7 +23,8 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 
 1. Create a [server-to-server OAuth app](https://marketplace.zoom.us/user/build), set up your app and collect your credentials (`Account ID`, `Client ID`, `Client Secret`). For questions on this, [reference the docs](https://developers.zoom.us/docs/internal-apps/create/) on creating a server-to-server app. Make sure you activate the app. Follow Zoom's [set up documentation](https://marketplace.zoom.us/docs/guides/build/server-to-server-oauth-app/) or [this video](https://www.youtube.com/watch?v=OkBE7CHVzho) for a more complete walk through.
 
-2. Add the necessary scopes to your app. In your app's _Scopes_ tab, add the following scopes: `account:master`, `account:read:admin`, `account:write:admin`, `information_barriers:read:admin`, `information_barriers:read:master`, `information_barriers:write:admin`, `information_barriers:write:master`, `meeting:master`, `meeting:read:admin`, `meeting:read:admin:sip_dialing`, `meeting:write:admin`, `meeting_token:read:admin:live_streaming`, `meeting_token:read:admin:local_archiving`, `meeting_token:read:admin:local_recording`, `recording:master`, `recording:read:admin`, `recording:write:admin`, `user:master`, `user:read:admin`, `user:write:admin`.
+2. Add the necessary scopes to your app. In your app's _Scopes_ tab, add the following scopes: 
+    > `cloud_recording:read:list_user_recordings:admin`, `user:read:user:admin`, `user:read:list_users:admin`.
 
 3. Copy **zoom-recording-downloader.conf.template** to a new file named **zoom-recording-downloader.conf** and fill in your Server-to-Server OAuth app credentials:
 ```
@@ -57,8 +58,8 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 ```
       {
               "Recordings": {
-                      "start_date": "2023-01-01",
-                      "end_date": "2023-12-31"
+                      "start_date": "2024-01-01",
+                      "end_date": "2024-12-31"
               }
       }
 ```
@@ -71,7 +72,7 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 ```
       {
               "Recordings": {
-                      "start_year": "2023",
+                      "start_year": "2024",
                       "start_month": "1",
                       "start_day": "1"
               }
@@ -117,5 +118,5 @@ For the previous formats you can use the following values
 5. Run command:
 
 ```sh
-$ python3 zoom-recording-downloader.py
+$ python zoom-recording-downloader.py
 ```
