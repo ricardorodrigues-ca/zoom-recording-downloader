@@ -25,19 +25,10 @@ SUCCESS_PAGE = """
 <html>
 <head>
     <title>Authentication Successful</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
-        h1 { color: #2d8cff; }
-    </style>
-    <script>
-        setTimeout(function() {
-            window.close();
-        }, 3000);
-    </script>
 </head>
 <body>
     <h1>Zoom Recording Downloader</h1>
-    <p>Authentication successful! This window will close automatically.</p>
+    <p>Authentication successful! You may close this window.</p>
 </body>
 </html>
 """
