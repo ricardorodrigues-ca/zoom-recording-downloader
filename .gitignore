@@ -36,3 +36,9 @@ __pycache__
 
 # Ignore Idea files
 .idea
+
+# Ignore Zoom recording downloader token
+token.json
+
+# Ignore Zoom recording downloader credentials
+client_secret.json

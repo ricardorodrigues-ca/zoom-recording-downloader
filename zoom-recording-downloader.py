@@ -12,12 +12,13 @@
 
 # System modules
 import base64
-import datetime
 import json
 import os
 import re as regex
 import signal
 import sys as system
+import time
+from datetime import datetime, date, timezone, timedelta
 
 # Installed modules
 import dateutil.parser as parser
@@ -25,6 +26,7 @@ import pathvalidate as path_validate
 import requests
 import tqdm as progress_bar
 from zoneinfo import ZoneInfo
+from google_drive_client import GoogleDriveClient
 
 class Color:
     PURPLE = "\033[95m"
@@ -68,15 +70,15 @@ ACCOUNT_ID = config("OAuth", "account_id", LookupError)
 CLIENT_ID = config("OAuth", "client_id", LookupError)
 CLIENT_SECRET = config("OAuth", "client_secret", LookupError)
 
-APP_VERSION = "3.0 (OAuth)"
+APP_VERSION = "3.1 (Google Drive Edition)"
 
 API_ENDPOINT_USER_LIST = "https://api.zoom.us/v2/users"
 
-RECORDING_START_YEAR = config("Recordings", "start_year", datetime.date.today().year)
+RECORDING_START_YEAR = config("Recordings", "start_year", date.today().year)
 RECORDING_START_MONTH = config("Recordings", "start_month", 1)
 RECORDING_START_DAY = config("Recordings", "start_day", 1)
-RECORDING_START_DATE = parser.parse(config("Recordings", "start_date", f"{RECORDING_START_YEAR}-{RECORDING_START_MONTH}-{RECORDING_START_DAY}"))
-RECORDING_END_DATE = parser.parse(config("Recordings", "end_date", str(datetime.date.today())))
+RECORDING_START_DATE = parser.parse(config("Recordings", "start_date", f"{RECORDING_START_YEAR}-{RECORDING_START_MONTH}-{RECORDING_START_DAY}")).replace(tzinfo=timezone.utc)
+RECORDING_END_DATE = parser.parse(config("Recordings", "end_date", str(date.today()))).replace(tzinfo=timezone.utc)
 DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
 COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
 COMPLETED_MEETING_IDS = set()
@@ -85,6 +87,41 @@ MEETING_TIMEZONE = ZoneInfo(config("Recordings", "timezone", 'UTC'))
 MEETING_STRFTIME = config("Recordings", "strftime", '%Y.%m.%d - %I.%M %p UTC')
 MEETING_FILENAME = config("Recordings", "filename", '{meeting_time} - {topic} - {rec_type} - {recording_id}.{file_extension}')
 MEETING_FOLDER = config("Recordings", "folder", '{topic} - {meeting_time}')
+
+# Google Drive configuration
+GDRIVE_ENABLED = False
+GDRIVE_CREDENTIALS_FILE = config("GoogleDrive", "credentials_file", "service-account.json")
+GDRIVE_ROOT_FOLDER = config("GoogleDrive", "root_folder_name", "zoom-recording-downloader")
+GDRIVE_RETRY_DELAY = int(config("GoogleDrive", "retry_delay", "5"))
+GDRIVE_MAX_RETRIES = int(config("GoogleDrive", "max_retries", "3"))
+GDRIVE_FAILED_LOG = config("GoogleDrive", "failed_log", "failed-uploads.log")
+
+def setup_google_drive():
+    """Initialize Google Drive client with OAuth authentication"""
+    try:
+        drive_client = GoogleDriveClient(CONF.get('GoogleDrive', {}))
+        if not drive_client.authenticate():
+            choice = input("Would you like to continue with local storage instead? (y/n): ")
+            if choice.lower() != 'y':
+                system.exit(1)
+            return None
+            
+        if not drive_client.initialize_root_folder():
+            print(f"{Color.RED}### Failed to create root folder in Google Drive{Color.END}")
+            choice = input("Would you like to continue with local storage instead? (y/n): ")
+            if choice.lower() != 'y':
+                system.exit(1)
+            return None
+            
+        return drive_client
+    except Exception as e:
+        print(f"{Color.RED}### Google Drive initialization failed: {str(e)}{Color.END}")
+        choice = input("Would you like to continue with local storage instead? (y/n): ")
+        if choice.lower() != 'y':
+            system.exit(1)
+        return None
+
+
 
 
 def load_access_token():
@@ -163,7 +200,7 @@ def format_filename(params):
     invalid_chars_pattern = r'[<>:"/\\|?*\x00-\x1F]'
     topic = regex.sub(invalid_chars_pattern, '', recording["topic"])
     rec_type = recording_type.replace("_", " ").title()
-    meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=datetime.timezone.utc)
+    meeting_time_utc = parser.parse(recording["start_time"]).replace(tzinfo=timezone.utc)
     meeting_time_local = meeting_time_utc.astimezone(MEETING_TIMEZONE)
     year = meeting_time_local.strftime("%Y")
     month = meeting_time_local.strftime("%m")
@@ -226,7 +263,7 @@ def list_recordings(email):
     for start, end in per_delta(
         RECORDING_START_DATE,
         RECORDING_END_DATE,
-        datetime.timedelta(days=30)
+        timedelta(days=30)
     ):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(
@@ -322,13 +359,27 @@ def main():
 
                         Zoom Recording Downloader
 
-                            Version {APP_VERSION}
+                        V{APP_VERSION}
 
         {Color.END}
     """)
 
-    load_access_token()
+    # Storage choice prompt
+    print("\nChoose download method:")
+    print("1. Local Storage")
+    print("2. Google Drive")
+    choice = input("Enter choice (1-2): ")
 
+    global GDRIVE_ENABLED
+    GDRIVE_ENABLED = (choice == "2")
+
+    drive_service = None
+    if GDRIVE_ENABLED:
+        drive_service = setup_google_drive()
+        if not drive_service:
+            GDRIVE_ENABLED = False
+
+    load_access_token()
     load_completed_meeting_ids()
 
     print(f"{Color.BOLD}Getting user accounts...{Color.END}")
@@ -345,64 +396,63 @@ def main():
         print(f"==> Found {total_count} recordings")
 
         for index, recording in enumerate(recordings):
-            success = False
-            meeting_id = recording["uuid"]
-            if meeting_id in COMPLETED_MEETING_IDS:
-                print(f"==> Skipping already downloaded meeting: {meeting_id}")
-
-                continue
-
             try:
-                downloads = get_downloads(recording)
-            except Exception:
-                print(
-                    f"{Color.RED}### Recording files missing for call with id {Color.END}"
-                    f"'{recording['id']}'\n"
-                )
+                recording_id = recording["uuid"]
 
+                if recording_id in COMPLETED_MEETING_IDS:
+                    print(
+                        f"\n==> Skipping already downloaded recording {index + 1} of {total_count}"
+                    )
+                    continue
+
+                downloads = get_downloads(recording)
+
+            except Exception as e:
+                print(
+                    f"{Color.RED}### Failed to get download URLs for recording {index + 1} "
+                    f"of {total_count} due to error: {str(e)}{Color.END}"
+                )
                 continue
+
+            print(f"\n==> Processing recording {index + 1} of {total_count}")
 
             for file_type, file_extension, download_url, recording_type, recording_id in downloads:
-                if recording_type != 'incomplete':
-                    filename, folder_name = (
-                        format_filename({
-                            "file_type": file_type,
-                            "recording": recording,
-                            "file_extension": file_extension,
-                            "recording_type": recording_type,
-                            "recording_id": recording_id
-                        })
-                    )
+                try:
+                    params = {
+                        "file_extension": file_extension,
+                        "recording": recording,
+                        "recording_id": recording_id,
+                        "recording_type": recording_type
+                    }
+                    filename, folder_name = format_filename(params)
 
-                    # truncate URL to 42 characters
-                    truncated_url = download_url[0:42] + "..."
+                    print(f"    > Downloading {filename}")
+                    sanitized_download_dir = path_validate.sanitize_filepath(
+                        os.sep.join([DOWNLOAD_DIRECTORY, folder_name])
+                    )
+                    sanitized_filename = path_validate.sanitize_filename(filename)
+                    full_filename = os.sep.join([sanitized_download_dir, sanitized_filename])
+
+                    if download_recording(download_url, email, filename, folder_name):
+                        if GDRIVE_ENABLED and drive_service:
+                            print(f"    > Uploading to Google Drive...")
+                            success = drive_service.upload_file(full_filename, folder_name, sanitized_filename)
+                            if success and os.path.exists(full_filename):
+                                os.remove(full_filename)
+                                if not os.listdir(sanitized_download_dir):
+                                    os.rmdir(sanitized_download_dir)
+
+                except Exception as e:
                     print(
-                        f"==> Downloading ({index + 1} of {total_count}) as {recording_type}: "
-                        f"{recording_id}: {truncated_url}"
+                        f"{Color.RED}### Failed to process file {file_type} "
+                        f"for recording {index + 1} of {total_count} due to error: "
+                        f"{str(e)}{Color.END}"
                     )
-                    success |= download_recording(download_url, email, filename, folder_name)
+                    continue
 
-                else:
-                    print(
-                        f"{Color.RED}### Incomplete Recording ({index + 1} of {total_count}) for "
-                        f"recording with id {Color.END}'{recording_id}'"
-                    )
-                    success = False
-
-            if success:
-                # if successful, write the ID of this recording to the completed file
-                with open(COMPLETED_MEETING_IDS_LOG, 'a') as log:
-                    COMPLETED_MEETING_IDS.add(meeting_id)
-                    log.write(meeting_id)
-                    log.write('\n')
-                    log.flush()
-
-    print(f"\n{Color.BOLD}{Color.GREEN}*** All done! ***{Color.END}")
-    save_location = os.path.abspath(DOWNLOAD_DIRECTORY)
-    print(
-        f"\n{Color.BLUE}Recordings have been saved to: {Color.UNDERLINE}{save_location}"
-        f"{Color.END}\n"
-    )
+            with open(COMPLETED_MEETING_IDS_LOG, "a") as fd:
+                fd.write(f"{recording_id}\n")
+                COMPLETED_MEETING_IDS.add(recording_id)
 
 
 if __name__ == "__main__":

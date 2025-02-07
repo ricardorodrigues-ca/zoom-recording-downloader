@@ -1,8 +1,8 @@
 # zoom-recording-downloader
 
-[![Python 3.6](https://img.shields.io/badge/python-3.6%20%2B-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-brown.svg)](https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/LICENSE)
+[![Python 3.6](https://img.shields.io/badge/python-3.11%20%2B-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-brown.svg)](https://raw.githubusercontent.com/ricardorodrigues-ca/zoom-recording-downloader/master/LICENSE)
 
-**Zoom Recording Downloader** is a cross-platform Python script that uses Zoom's API (v2) to download and organize all cloud recordings from a Zoom account onto local storage.
+**Zoom Recording Downloader** is a cross-platform Python script that uses Zoom's API (v2) to download and organize all cloud recordings from a Zoom account onto local storage or Google Drive.
 
 ## Screenshot ##
 ![screenshot](screenshot.png)
@@ -115,8 +115,58 @@ For the previous formats you can use the following values
   - **{rec_type}** is the type of the recording
   - **{topic}** is the title of the zoom meeting
 
+## Google Drive Setup (Optional) ##
+
+To enable Google Drive upload support:
+
+1. Create a Google Cloud Project:
+   - Go to [Google Cloud Console](https://console.cloud.google.com)
+   - Create a new project or select an existing one
+   - Enable the Google Drive API for your project ([Click to enable ↗](https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com))
+
+2. Create OAuth 2.0 credentials:
+	- In Cloud Console, go to "APIs & Services" > "Credentials"
+	- Click "Create Credentials" > "OAuth client ID"
+	- Choose "Desktop application" as the application type
+	- Give it a name (e.g., "Zoom Recording Downloader")
+	- Download the JSON file and save as `client_secrets.json` in the script directory
+
+3. Configure OAuth consent screen:
+	- Go to "OAuth consent screen"
+	- Select "External" user type
+	- Set application name to "Zoom Recording Downloader"
+	- Add required scopes:
+		- https://www.googleapis.com/auth/drive.file
+		- https://www.googleapis.com/auth/drive.metadata
+		- https://www.googleapis.com/auth/drive.appdata
+
+4. Update your config:
+	```json
+	{
+		"GoogleDrive": {
+			"client_secrets_file": "client_secrets.json",
+			"token_file": "token.json",
+			"root_folder_name": "zoom-recording-downloader",
+			"retry_delay": 5,
+			"max_retries": 3,
+			"failed_log": "failed-uploads.log"
+        }
+	}
+	```
+
+**Important:** Keep your OAuth credentials file secure and never commit it to version control.
+Consider adding `client_secrets.json` to your .gitignore file.
+
+Note: When you first run the script with Google Drive enabled, it will open your default browser for authentication. After authorizing the application, the token will be saved locally and reused for future runs.
+
 5. Run command:
 
 ```sh
 $ python zoom-recording-downloader.py
 ```
+
+When prompted, choose your preferred storage method:
+1. Local Storage - Saves recordings to your local machine
+2. Google Drive - Uploads recordings to your Google Drive account
+
+Note: For Google Drive uploads, files are temporarily downloaded to local storage before being uploaded, then automatically deleted after successful upload.
