@@ -10,7 +10,7 @@
 
 ## Installation ##
 
-_Attention: You will need [Python 3.6](https://www.python.org/downloads/) or greater_
+_Attention: You will need [Python 3.11](https://www.python.org/downloads/) or greater_
 
 ```sh
 $ git clone https://github.com/ricardorodrigues-ca/zoom-recording-downloader
