@@ -258,13 +258,10 @@ def list_recordings(email):
     """ Start date now split into YEAR, MONTH, and DAY variables (Within 6 month range)
         then get recordings within that range
     """
+    
     recordings = []
 
-    for start, end in per_delta(
-        RECORDING_START_DATE,
-        RECORDING_END_DATE,
-        timedelta(days=30)
-    ):
+    for start, end in per_delta(RECORDING_START_DATE, RECORDING_END_DATE, timedelta(days=30)):
         post_data = get_recordings(email, 300, start, end)
         response = requests.get(
             url=f"https://api.zoom.us/v2/users/{email}/recordings",
@@ -272,7 +269,10 @@ def list_recordings(email):
             params=post_data
         )
         recordings_data = response.json()
-        recordings.extend(recordings_data["meetings"])
+        if "meetings" in recordings_data:
+            recordings.extend(recordings_data["meetings"])
+        else:
+            print(f"No 'meetings' key found in response for {email} from {start} to {end}")
 
     return recordings
 
