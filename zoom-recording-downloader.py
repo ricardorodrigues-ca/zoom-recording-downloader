@@ -154,8 +154,7 @@ def load_access_token():
 
 
 def get_users():
-    """ loop through pages and return all users
-    """
+    """ loop through pages and return all users """
     response = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER)
 
     if not response.ok:
@@ -179,14 +178,13 @@ def get_users():
             (
                 user["email"],
                 user["id"],
-                user["first_name"],
-                user["last_name"]
+                user.get("first_name", ""),  # Use .get() with a default value
+                user.get("last_name", "")    # Use .get() with a default value
             )
             for user in user_data["users"]
         ])
 
         all_users.extend(users)
-        page += 1
 
     return all_users
 
