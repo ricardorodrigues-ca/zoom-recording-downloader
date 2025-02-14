@@ -50,7 +50,7 @@ except json.JSONDecodeError as e:
     print(f"{Color.RED}### Error parsing JSON in {CONF_PATH}: {e}")
     system.exit(1)
 except FileNotFoundError:
-    print(f"{Color.RED}### Configuration file {CONF_PATH} not found")
+    print(f"{Color.RED}### Configuqration file {CONF_PATH} not found")
     system.exit(1)
 except Exception as e:
     print(f"{Color.RED}### Unexpected error: {e}")
