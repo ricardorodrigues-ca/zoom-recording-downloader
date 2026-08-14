@@ -1,5 +1,5 @@
 # Ignore Mac system files
-.DS_store
+.DS_Store
 
 # Ignore token.py, if present
 token.py
@@ -24,6 +24,7 @@ zoom-recording-downloader.conf
 
 # Ignore Python virtual environment
 venv
+.venv/
 
 # Ignore Python bytecode
 *.pyc
@@ -38,6 +39,7 @@ __pycache__
 .idea
 
 # Ignore Zoom recording downloader token
+client_secrets.json
 token.json
 
 # Ignore Zoom recording downloader credentials
