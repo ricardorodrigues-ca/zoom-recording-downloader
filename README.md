@@ -32,8 +32,14 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 
 1. Create a [server-to-server OAuth app](https://marketplace.zoom.us/user/build), set up your app and collect your credentials (`Account ID`, `Client ID`, `Client Secret`). For questions on this, [reference the docs](https://developers.zoom.us/docs/internal-apps/create/) on creating a server-to-server app. Make sure you activate the app. Follow Zoom's [set up documentation](https://marketplace.zoom.us/docs/guides/build/server-to-server-oauth-app/) or [this video](https://www.youtube.com/watch?v=OkBE7CHVzho) for a more complete walk through.
 
-2. Add the necessary scopes to your app. In your app's _Scopes_ tab, add the following scopes: 
-    > `cloud_recording:read:list_user_recordings:admin`, `user:read:user:admin`, `user:read:list_users:admin`.
+2. Add the scopes for the download modes you intend to use in your app's _Scopes_ tab, then activate (or reactivate) the app.
+
+   | Download mode | Required granular scopes |
+   | --- | --- |
+   | Cloud recordings (default) | `cloud_recording:read:list_user_recordings:admin`, `user:read:user:admin`, `user:read:list_users:admin` |
+   | Zoom Clips (`--clips`) | `clips:read:list_user_clips:admin`, `clips:read:download_clip:admin` |
+
+   To use both modes, add all five scopes. The Clips scopes are read-only: one lists the Clip library and the other downloads a Clip MP4. They do not change or delete Clips.
 
 3. Copy **zoom-recording-downloader.conf.template** to a new file named **zoom-recording-downloader.conf** and fill in your Server-to-Server OAuth app credentials:
 ```
@@ -48,11 +54,15 @@ _Attention: You will need a [Zoom Developer account](https://marketplace.zoom.us
 
 - Specify the base **download_dir** under which the recordings will be downloaded (default is 'downloads')
 - Specify the **completed_log** log file that will store the ID's of downloaded recordings (default is 'completed-downloads.log')
+- Specify the **clips_dir** under which Clips will be downloaded (default is 'downloads/clips')
+- Specify the **completed_clips_log** log file that stores IDs of downloaded Clips (default is 'completed-clips.log')
 
 ```
 "Storage": {
         "download_dir": "downloads",
-        "completed_log": "completed-downloads.log"
+        "completed_log": "completed-downloads.log",
+        "clips_dir": "downloads/clips",
+        "completed_clips_log": "completed-clips.log"
         }
 ```
 
@@ -133,6 +143,20 @@ You can combine both arguments:
 ```sh
 $ python zoom-recording-downloader.py --skip-existing --skip-users user1@example.com user2@example.com
 ```
+
+### Zoom Clips
+
+To download Zoom Clips, add these scopes to your Server-to-Server OAuth app and reactivate it:
+
+> `clips:read:list_user_clips:admin`, `clips:read:download_clip:admin`
+
+Then run the downloader in Clips mode. Clips are saved locally under `downloads/clips` by default, organized by year and month. A separate `completed-clips.log` makes this mode resumable.
+
+```sh
+$ python zoom-recording-downloader.py --clips --skip-existing
+```
+
+Optionally, set `Storage.clips_dir` in the configuration file to store Clips elsewhere.
 
 ## Google Drive Setup (Optional) ##
 

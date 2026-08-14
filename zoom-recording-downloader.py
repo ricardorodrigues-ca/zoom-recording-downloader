@@ -106,6 +106,9 @@ RECORDING_END_DATE = parser.parse(config("Recordings", "end_date", str(date.toda
 DOWNLOAD_DIRECTORY = config("Storage", "download_dir", 'downloads')
 COMPLETED_MEETING_IDS_LOG = config("Storage", "completed_log", 'completed-downloads.log')
 COMPLETED_MEETING_IDS = set()
+COMPLETED_CLIP_IDS_LOG = config("Storage", "completed_clips_log", 'completed-clips.log')
+COMPLETED_CLIP_IDS = set()
+CLIPS_DIRECTORY = config("Storage", "clips_dir", os.path.join(DOWNLOAD_DIRECTORY, 'clips'))
 
 MEETING_TIMEZONE = ZoneInfo(config("Recordings", "timezone", 'UTC'))
 MEETING_STRFTIME = config("Recordings", "strftime", '%Y.%m.%d - %I.%M %p UTC')
@@ -393,6 +396,113 @@ def download_recording(download_url, email, filename, folder_name):
         return False
 
 
+def list_clips():
+    """Return all clips available to the authenticated account, following pagination."""
+    clips = []
+    next_page_token = None
+
+    while True:
+        params = {"page_size": 30}
+        if next_page_token:
+            params["next_page_token"] = next_page_token
+
+        response = requests.get(
+            url="https://api.zoom.us/v2/clips",
+            headers=AUTHORIZATION_HEADER,
+            params=params
+        )
+        response.raise_for_status()
+        page = response.json()
+        clips.extend(page.get("data", []))
+
+        next_page_token = page.get("next_page_token")
+        if not next_page_token:
+            return clips
+
+
+def format_clip_filename(clip):
+    """Build a stable, date-organized filename for a Zoom Clip MP4."""
+    created_date = parser.parse(clip["created_date"]).astimezone(MEETING_TIMEZONE)
+    title = clip.get("title") or "Untitled Clip"
+    invalid_chars_pattern = r'[<>:"/\\|?*\x00-\x1F]'
+    title = regex.sub(invalid_chars_pattern, '', title).strip() or "Untitled Clip"
+    clip_id = clip["clip_id"]
+    folder = os.path.join(
+        created_date.strftime("%Y"),
+        created_date.strftime("%m")
+    )
+    filename = f"{created_date.strftime(MEETING_STRFTIME)}-{title}-{clip_id}.mp4"
+    return filename, folder
+
+
+def download_clip(clip, filename, folder_name):
+    """Download one Clip through Zoom's authenticated redirect endpoint."""
+    download_dir = path_validate.sanitize_filepath(os.path.join(CLIPS_DIRECTORY, folder_name))
+    sanitized_filename = path_validate.sanitize_filename(filename)
+    full_filename = os.path.join(download_dir, sanitized_filename)
+    os.makedirs(download_dir, exist_ok=True)
+
+    response = requests.get(
+        f"https://api.zoom.us/v2/clips/{clip['clip_id']}/download",
+        headers=AUTHORIZATION_HEADER,
+        stream=True
+    )
+    response.raise_for_status()
+
+    total_size = int(response.headers.get("content-length", 0))
+    block_size = 32 * 1024
+    progress = progress_bar.tqdm(dynamic_ncols=True, total=total_size, unit="iB", unit_scale=True)
+    try:
+        with open(full_filename, "wb") as fd:
+            for chunk in response.iter_content(block_size):
+                if chunk:
+                    progress.update(len(chunk))
+                    fd.write(chunk)
+        return True
+    except Exception as e:
+        print(f"{Color.RED}### Failed to download clip '{filename}': {e}{Color.END}")
+        return False
+    finally:
+        progress.close()
+
+
+def download_clips(args):
+    """Download all completed Zoom Clips to the configured local clips directory."""
+    load_completed_clip_ids()
+    print(f"{Color.BOLD}Getting Zoom Clips...{Color.END}")
+    clips = list_clips()
+    print(f"==> Found {len(clips)} clips")
+
+    for index, clip in enumerate(clips, start=1):
+        clip_id = clip["clip_id"]
+        if clip_id in COMPLETED_CLIP_IDS:
+            print(f"\n==> Skipping already downloaded clip {index} of {len(clips)}")
+            continue
+        if clip.get("status") != "RECORD_SUCCESS":
+            print(f"\n==> Skipping clip {index} of {len(clips)} (status: {clip.get('status', 'unknown')})")
+            continue
+
+        filename, folder_name = format_clip_filename(clip)
+        full_filename = os.path.join(
+            path_validate.sanitize_filepath(os.path.join(CLIPS_DIRECTORY, folder_name)),
+            path_validate.sanitize_filename(filename)
+        )
+        if args.skip_existing and os.path.exists(full_filename):
+            print(f"\n==> Skipping {truncate_filename(filename)} (already exists)")
+        else:
+            print(f"\n==> Downloading clip {index} of {len(clips)}: {truncate_filename(filename)}")
+            try:
+                if not download_clip(clip, filename, folder_name):
+                    continue
+            except requests.RequestException as e:
+                print(f"{Color.RED}### Failed to download clip {index} of {len(clips)}: {e}{Color.END}")
+                continue
+
+        with open(COMPLETED_CLIP_IDS_LOG, "a") as fd:
+            fd.write(f"{clip_id}\n")
+        COMPLETED_CLIP_IDS.add(clip_id)
+
+
 def load_completed_meeting_ids():
     try:
         with open(COMPLETED_MEETING_IDS_LOG, 'r') as fd:
@@ -402,6 +512,17 @@ def load_completed_meeting_ids():
         print(
             f"{Color.DARK_CYAN}Log file not found. Creating new log file: {Color.END}"
             f"{COMPLETED_MEETING_IDS_LOG}\n"
+        )
+
+
+def load_completed_clip_ids():
+    try:
+        with open(COMPLETED_CLIP_IDS_LOG, 'r') as fd:
+            [COMPLETED_CLIP_IDS.add(line.strip()) for line in fd]
+    except FileNotFoundError:
+        print(
+            f"{Color.DARK_CYAN}Clip log file not found. Creating new log file: {Color.END}"
+            f"{COMPLETED_CLIP_IDS_LOG}\n"
         )
 
 
@@ -427,6 +548,11 @@ def parse_arguments():
         metavar="EMAIL",
         default=[],
         help="List of user emails to skip (e.g., --skip-users user1@example.com user2@example.com)"
+    )
+    parser.add_argument(
+        "--clips",
+        action="store_true",
+        help="Download Zoom Clips to Storage.clips_dir instead of cloud recordings"
     )
     return parser.parse_args()
 
@@ -485,6 +611,12 @@ def main():
             GDRIVE_ENABLED = False
 
     load_access_token()
+    if args.clips:
+        if GDRIVE_ENABLED:
+            print(f"{Color.YELLOW}### Zoom Clips are saved to local storage only.{Color.END}")
+        download_clips(args)
+        return
+
     load_completed_meeting_ids()
 
     print(f"{Color.BOLD}Getting user accounts...{Color.END}")
