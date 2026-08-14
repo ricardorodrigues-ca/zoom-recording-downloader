@@ -67,6 +67,29 @@ def config(section, key, default=''):
         else:
             return default
 
+def normalize_user_statuses(raw_statuses):
+    if isinstance(raw_statuses, str):
+        candidates = [s.strip() for s in raw_statuses.split(",")]
+    elif isinstance(raw_statuses, list):
+        candidates = [str(s).strip() for s in raw_statuses]
+    else:
+        candidates = []
+
+    allowed = {"active", "inactive", "pending"}
+    normalized = [s.lower() for s in candidates if s and s.lower() in allowed]
+
+    if not normalized:
+        normalized = ["active"]
+
+    # De-duplicate while preserving order
+    seen = set()
+    unique = []
+    for status in normalized:
+        if status not in seen:
+            unique.append(status)
+            seen.add(status)
+    return unique
+
 ACCOUNT_ID = config("OAuth", "account_id", LookupError)
 CLIENT_ID = config("OAuth", "client_id", LookupError)
 CLIENT_SECRET = config("OAuth", "client_secret", LookupError)
@@ -96,6 +119,10 @@ GDRIVE_ROOT_FOLDER = config("GoogleDrive", "root_folder_name", "zoom-recording-d
 GDRIVE_RETRY_DELAY = int(config("GoogleDrive", "retry_delay", "5"))
 GDRIVE_MAX_RETRIES = int(config("GoogleDrive", "max_retries", "3"))
 GDRIVE_FAILED_LOG = config("GoogleDrive", "failed_log", "failed-uploads.log")
+
+# User listing configuration
+USERS_PAGE_SIZE = int(config("Users", "page_size", 300))
+USER_STATUSES = normalize_user_statuses(config("Users", "statuses", ["active"]))
 
 def setup_google_drive():
     """Initialize Google Drive client with OAuth authentication"""
@@ -154,40 +181,51 @@ def load_access_token():
         print(f"{Color.RED}### The key 'access_token' wasn't found.{Color.END}")
 
 
-def get_users():
-    """ loop through pages and return all users """
-    response = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER)
+def get_users(statuses, page_size):
+    """ loop through pages and return all users for the given status values """
+    all_users_by_id = {}
 
-    if not response.ok:
-        print(response)
-        print(
-            f"{Color.RED}### Could not retrieve users. Please make sure that your access "
-            f"token is still valid{Color.END}"
-        )
+    for status in statuses:
+        params = {
+            "status": status,
+            "page_size": page_size,
+        }
+        response = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER, params=params)
 
-        system.exit(1)
-
-    page_data = response.json()
-    total_pages = int(page_data["page_count"]) + 1
-
-    all_users = []
-
-    for page in range(1, total_pages):
-        url = f"{API_ENDPOINT_USER_LIST}?page_number={str(page)}"
-        user_data = requests.get(url=url, headers=AUTHORIZATION_HEADER).json()
-        users = ([
-            (
-                user["email"],
-                user["id"],
-                user.get("first_name", ""),  # Use .get() with a default value
-                user.get("last_name", "")    # Use .get() with a default value
+        if not response.ok:
+            print(response)
+            print(
+                f"{Color.RED}### Could not retrieve users with status '{status}'. Please make sure "
+                f"that your access token is still valid{Color.END}"
             )
-            for user in user_data["users"]
-        ])
+            system.exit(1)
 
-        all_users.extend(users)
+        page_data = response.json()
+        total_pages = int(page_data.get("page_count", 1))
 
-    return all_users
+        for page in range(1, total_pages + 1):
+            params = {
+                "status": status,
+                "page_number": page,
+                "page_size": page_size,
+            }
+            user_data = requests.get(url=API_ENDPOINT_USER_LIST, headers=AUTHORIZATION_HEADER, params=params).json()
+            users = ([
+                (
+                    user.get("email", ""),
+                    user.get("id", ""),
+                    user.get("first_name", ""),  # Use .get() with a default value
+                    user.get("last_name", ""),   # Use .get() with a default value
+                    user.get("status", status)
+                )
+                for user in user_data.get("users", [])
+                if user.get("id")
+            ])
+
+            for user in users:
+                all_users_by_id[user[1]] = user
+
+    return list(all_users_by_id.values())
 
 
 def format_filename(params):
@@ -450,22 +488,24 @@ def main():
     load_completed_meeting_ids()
 
     print(f"{Color.BOLD}Getting user accounts...{Color.END}")
-    users = get_users()
+    users = get_users(USER_STATUSES, USERS_PAGE_SIZE)
     total_users = len(users)
 
     print(f"\n{Color.BOLD}Found {total_users} users:{Color.END}")
-    for idx, (email, user_id, first_name, last_name) in enumerate(users, start=1):
-        user_display = f"{first_name} {last_name} - {email}" if first_name and last_name else email
+    for idx, (email, user_id, first_name, last_name, status) in enumerate(users, start=1):
+        status_label = f" ({status})" if status else ""
+        user_display = f"{first_name} {last_name} - {email}{status_label}" if first_name and last_name else f"{email}{status_label}"
         print(f"  {idx}. {user_display}")
 
-    for user_idx, (email, user_id, first_name, last_name) in enumerate(users, start=1):
+    for user_idx, (email, user_id, first_name, last_name, status) in enumerate(users, start=1):
         # Skip users specified in --skip-users
         if email in args.skip_users:
             print(f"\n{Color.DARK_CYAN}Skipping user {user_idx}/{total_users}: {email}{Color.END}")
             continue
 
+        status_label = f" ({status})" if status else ""
         userInfo = (
-            f"{first_name} {last_name} - {email}" if first_name and last_name else f"{email}"
+            f"{first_name} {last_name} - {email}{status_label}" if first_name and last_name else f"{email}{status_label}"
         )
         print(f"\n{Color.BOLD}[{user_idx}/{total_users}] Getting recording list for {userInfo}{Color.END}")
 

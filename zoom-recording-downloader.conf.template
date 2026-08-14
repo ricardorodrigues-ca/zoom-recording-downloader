@@ -9,6 +9,11 @@
         "completed_log": "completed-downloads.log",
         "download_dir": "downloads"
     },
+    "Users": {
+        "_comment": "Optional: User statuses to include (active, inactive, pending)",
+        "statuses": ["active", "inactive"],
+        "page_size": 300
+    },
     "GoogleDrive": {
         "_comment": "Optional: Only needed if using Google Drive upload feature",
         "client_secrets_file": "client_secrets.json",
